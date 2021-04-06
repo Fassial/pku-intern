@@ -6,7 +6,12 @@ Filename: stimulus.py
 import numpy as np
 import matplotlib.pyplot as plt
 
-class stimulus:
+__all__ = [
+    "stimulus",
+    "stim_params",
+]
+
+class stimulus(object):
 
     @staticmethod
     def get(stim_params):

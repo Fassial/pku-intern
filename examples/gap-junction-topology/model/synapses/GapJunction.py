@@ -1,14 +1,19 @@
 """
 Created on 23:57, Apr. 5th, 2021
 Author: fassial
-Filename: GJ.py
+Filename: GapJunction.py
 """
 import brainpy as bp
 
-class GJ(bp.TwoEndConn):
+__all__ = [
+    "GapJunction",
+    "GapJunction_LIF",
+]
+
+class GapJunction(bp.TwoEndConn):
     target_backend = "general"
 
-    def __init__(self, pre, post, conn, delay = 0., **kwargs):
+    def __init__(self, pre, post, conn, weight = 1., delay = 0., **kwargs):
         # init params
         self.delay = delay
 
@@ -18,10 +23,10 @@ class GJ(bp.TwoEndConn):
         self.size = bp.backend.shape(self.conn_mat)
 
         # init vars
-        self.w = bp.backend.ones(self.size)
+        self.w = bp.backend.ones(self.size) * weight
 
         # init super
-        super(GJ, self).__init__(pre = pre, post = post, **kwargs)
+        super(GapJunction, self).__init__(pre = pre, post = post, **kwargs)
 
     def update(self, _t):
         # get V_post & V_pre
@@ -32,10 +37,10 @@ class GJ(bp.TwoEndConn):
         Isyn = self.w * (V_pre - V_post) * self.conn_mat
         self.post.input += bp.backend.sum(Isyn, axis = 0)
 
-class GJ_LIF(bp.TwoEndConn):
+class GapJunction_LIF(bp.TwoEndConn):
     target_backend = "general"
 
-    def __init__(self, pre, post, conn, delay = 0.,
+    def __init__(self, pre, post, conn, weight = 1., delay = 0.,
         k_spikelet = 0.1, post_refractory = False, **kwargs
     ):
         # init params
@@ -49,14 +54,14 @@ class GJ_LIF(bp.TwoEndConn):
         self.size = bp.backend.shape(self.conn_mat)
 
         # init vars
-        self.w = bp.backend.ones(self.size)
+        self.w = bp.backend.ones(self.size) * weight
         self.spikelet = self.register_constant_delay("spikelet",
             size = self.size,
             delay_time = delay
         )
 
         # init super
-        super(GJ_LIF, self).__init__(pre = pre, post = post, **kwargs)
+        super(GapJunction_LIF, self).__init__(pre = pre, post = post, **kwargs)
 
     def update(self, _t):
         # get V_post & V_pre

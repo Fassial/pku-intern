@@ -5,10 +5,14 @@ Filename: VoltageJump.py
 """
 import brainpy as bp
 
+__all__ = [
+    "VoltageJump",
+]
+
 class VoltageJump(bp.TwoEndConn):
     target_backend = "general"
 
-    def __init__(self, pre, post, conn, delay = 0., post_refractory = False, **kwargs):
+    def __init__(self, pre, post, conn, weight = 1., delay = 0., post_refractory = False, **kwargs):
         # init params
         self.delay = delay
         self.post_refractory = post_refractory
@@ -20,6 +24,7 @@ class VoltageJump(bp.TwoEndConn):
 
         # init vars
         self.s = bp.backend.zeros(self.size)
+        self.w = bp.backend.ones(self.size) * weight
         self.Isyn = self.register_constant_delay("Isyn",
             size = self.size,
             delay_time = delay
@@ -35,9 +40,9 @@ class VoltageJump(bp.TwoEndConn):
         # check post_refractory
         if self.post_refractory:
             refractor_map = (1. - bp.backend.unsqueeze(self.post.refractory, 0)) * self.conn_mat
-            self.Isyn.push(self.s * refractor_map)
+            self.Isyn.push(self.s * refractor_map * self.w)
         else:
-            self.Isyn.push(self.s)
+            self.Isyn.push(self.s * self.w)
 
         # set post.V
         self.post.V += bp.backend.sum(self.Isyn.pull(), axis = 0)
