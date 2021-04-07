@@ -72,17 +72,15 @@ class GapJunction_LIF(bp.TwoEndConn):
         Isyn = self.w * (V_pre - V_post) * self.conn_mat
         self.post.input += bp.backend.sum(Isyn, axis = 0)
 
-        # check post_refractory
-        if self.post_refractory:
-            self.spikelet.push(self.w * self.k_spikelet *\
-                bp.backend.unsqueeze(self.pre.spike, 1) *\
-                self.conn_mat * (1. - self.post.refractory)
-            )
-        else:
-            self.spikelet.push(self.w * self.k_spikelet *\
-                bp.backend.unsqueeze(self.pre.spike, 1) *\
-                self.conn_mat
-            )
+        # push spikelet
+        self.spikelet.push(self.w * self.k_spikelet *\
+            bp.backend.unsqueeze(self.pre.spike, 1) *\
+            self.conn_mat
+        )
 
-        # set post.V
-        self.post.V += bp.backend.sum(self.spikelet.pull(), axis = 0)
+        # set post.V & check post_refractory
+        if self.post_refractory:
+            self.post.V += bp.backend.sum(self.spikelet.pull() * (1. - self.post.refractory), axis = 0)
+        else:
+            self.post.V += bp.backend.sum(self.spikelet.pull(), axis = 0)
+

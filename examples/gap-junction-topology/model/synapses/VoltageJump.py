@@ -37,12 +37,13 @@ class VoltageJump(bp.TwoEndConn):
         # set s
         self.s = bp.backend.unsqueeze(self.pre.spike, 1) * self.conn_mat
 
-        # check post_refractory
+        # push Isyn
+        self.Isyn.push(self.s * self.w)
+
+        # set post.V & check post_refractory
         if self.post_refractory:
             refractor_map = (1. - bp.backend.unsqueeze(self.post.refractory, 0)) * self.conn_mat
-            self.Isyn.push(self.s * refractor_map * self.w)
+            self.post.V += bp.backend.sum(self.Isyn.pull() * refractor_map, axis = 0)
         else:
-            self.Isyn.push(self.s * self.w)
+            self.post.V += bp.backend.sum(self.Isyn.pull(), axis = 0)
 
-        # set post.V
-        self.post.V += bp.backend.sum(self.Isyn.pull(), axis = 0)

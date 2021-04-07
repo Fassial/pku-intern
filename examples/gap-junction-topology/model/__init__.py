@@ -12,3 +12,4 @@ from . import synapses
 
 # network model
 from .RGC_SC_Net import *
+

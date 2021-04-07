@@ -276,3 +276,4 @@ default_stim_params = {
 
 if __name__ == "__main__":
     stimulus.show(default_stim_params["two_holes"])
+
