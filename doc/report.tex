@@ -52,12 +52,12 @@ A Neural Network Model with Gap Junction for Global Feature Extraction.
         }
 
         %% connection
-        % alpha synapses
+        % Exponential Synapses
         \draw[line width=1,->] (node_{0}_1) ..controls(0,3.5) and (0.5,3.5).. (node_{1}_1);
         \draw[line width=1,->] (node_{0}_1) ..controls(0,4) and (1.5,3.5).. (node_{2}_1);
         \draw[line width=1,->] (node_{0}_1) ..controls(0,3.5) and (-0.5,3.5).. (node_{-1}_1);
         \draw[line width=1,->] (node_{0}_1) ..controls(0,4) and (-1.5,3.5).. (node_{-2}_1);
-        \node[black] at (0,4) {Inhibitory $\alpha$-synapses};
+        \node[black] at (0,4) {Inhibitory Exponential-Synapses};
         % gap junction
         \draw[line cap=round,line width=1,-,red] (node_{0}_1)--(0.4,3)--(0.45,3.2)
             --(0.55,2.8)--(0.6,3)--(node_{1}_1);
@@ -69,13 +69,13 @@ A Neural Network Model with Gap Junction for Global Feature Extraction.
     \label{fig:network-model}
 \end{figure}
 \subsection{Neuronal Dynamics}
-  简便起见，模型中的所有神经元都使用LIF模型实现。所有神经元都接受来自外界的输入，其中I型神经元的外界输入只有双极细胞输入，而E型神经元的外界输入可以分为两部分：双极细胞输入和黑色素输入。双极细胞输入由于生物神经元结构相对黑色素输入有一定延迟，但这一点暂时没有被我们初步的模型所考虑。环上每一个神经元都与相邻的$n$个神经元形成电突触连接，每个I型神经元都与相邻的$m$个E神经元形成抑制性$\alpha$化学突触连接。
+  简便起见，模型中的所有神经元都使用LIF模型实现。所有神经元都接受来自外界的输入，其中I型神经元的外界输入只有双极细胞输入，而E型神经元的外界输入可以分为两部分：双极细胞输入和黑色素输入。双极细胞输入由于生物神经元结构相对黑色素输入有一定延迟，但这一点暂时没有被我们初步的模型所考虑。环上每一个神经元都与相邻的$n$个神经元形成电突触连接，每个I型神经元都与相邻的$m$个E神经元形成抑制性Exponential化学突触连接。
 
   I型神经元的动力学机制如下：
 \begin{equation}
     {\tau}\frac{dV_{i}(t)}{dt} = -V_{i}(t) + \sum_{j \in N_{G}(i)}I_{ij}^{gap}(t) + I_{i}^{ext}(t)
 \end{equation}
-其中，下标$i = (1,...,N)$表示神经元的索引，$V_{i}$表示神经元的膜电位，$\tau$表示膜时间常数，$I_{ij}^{gap}$表示从神经元$j$通过gap junction传递而来的电流，$N_{G}(i)$表示与神经元$i$具备电突触连接的神经元集合，$I_{ext}$表示外部输入的刺激。无论何时$V_{i}(t)$到达一个固定的阈值$V_{th}$，神经元便会产生一个spike，然后以$\tau^{arp}$为衰减周期将自身膜电位复位到$V_{rest}$。在仿真开始前，所有神经元的膜电位被随机初始化。
+其中，下标$i = (1,...,N)$表示神经元的索引，$V_{i}$表示神经元的膜电位，$\tau$表示膜时间常数，$I_{ij}^{gap}$表示从神经元$j$通过gap junction传递而来的电流，$N_{G}(i)$表示与神经元$i$具备电突触连接的神经元集合，$I_{ext}$表示外部输入的刺激。无论何时$V_{i}(t)$到达一个固定的阈值$V_{th}$，神经元便会产生一个spike，然后将自身膜电位复位到$V_{rest}$并进入时长为$\tau^{arp}$的不应期。在仿真开始前，所有神经元的膜电位被随机初始化。
 
   E型神经元的动力学机制与I型神经元略有差异，多了来自I型神经元的抑制输入，其表达式如下：
 \begin{equation}
@@ -97,13 +97,12 @@ A Neural Network Model with Gap Junction for Global Feature Extraction.
 \end{equation}
 其中，$t_{j}^{spike}$表示神经元$j$产生spike的时刻，$\gamma$量化spike对神经元膜电位增加量的贡献。
 
-  由$\alpha$化学突触介导的电流动力学机制（current-based）如下：
+  由Exponential化学突触介导的电流动力学机制（current-based）如下：
 \begin{gather}
     I_{i}^{chem}(t) = \bar{g}s_{i}(t) \\
-    \frac{ds_{i}}{dt} = x_{i} \\
-    \tau^{2}\frac{dx_{i}}{dt} = -2{\tau}x_{i} - s_{i} + \sum_{j \in N_{C}(i)}\delta(t - t_{j}^{spike})
+    \frac{ds_{i}}{dt} = -\frac{s_{i}}{\tau_{decay}} + \sum_{j \in N_{C}(i)}\delta(t - t_{j}^{spike})
 \end{gather}
-其中，$\bar{g}$表示化学突触平均电导，$N_{C}(i)$表示与神经元$i$具备抑制性化学突触连接的神经元集合，$t_{j}^{spike}$表示神经元$j$产生spike的时刻。
+其中，$\bar{g}$表示化学突触平均电导，$\tau_{decay}$表示衰减时间常数，$N_{C}(i)$表示与神经元$i$具备抑制性化学突触连接的神经元集合，$t_{j}^{spike}$表示神经元$j$产生spike的时刻。
 
   外部输入电流$I_{i}^{ext}$，携带着图像的亮度信息。其被建模为带有高斯白噪音的连续电流：
 \begin{equation}
