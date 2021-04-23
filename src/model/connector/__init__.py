@@ -4,5 +4,6 @@ Author: fassial
 Filename: __init__.py
 """
 
+from .IndexConnector import *
 from .NeighborConnector import *
 

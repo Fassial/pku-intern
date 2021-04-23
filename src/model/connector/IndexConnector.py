@@ -12,17 +12,21 @@ __all__ = [
 class IndexConnector(bp.connect.Connector):
 
     def __init__(self):
+        # init params
+        self.pre_ids = []
+        self.post_ids = []
+
         # init super
         super(IndexConnector, self).__init__()
 
-    def __call__(self, pre_size, post_size, pre_ids = [], post_ids = []):
+    def __call__(self, pre_size, post_size, pre_ids = None, post_ids = None):
         # init params
         self.num_pre = bp.size2len(pre_size)
         self.num_post = bp.size2len(post_size)
+        if pre_ids != None: self.pre_ids = pre_ids 
+        if post_ids != None: self.post_ids = post_ids
 
         # init vars
-        self.pre_ids = pre_ids
-        self.post_ids = post_ids
         self.conn_mat = bp.connect.ij2mat(
             i = self.pre_ids,
             j = self.post_ids,
@@ -34,12 +38,13 @@ class IndexConnector(bp.connect.Connector):
 
 if __name__ == "__main__":
     # inst IndexConnector
-    ic = IndexConnector()
+    ic = IndexConnector(
+        pre_ids = [0,0,0,1,1,2,7,8,8,9,9,9],
+        post_ids = [0,1,2,3,4,5,6,7,8,9,0,1]
+    )
     # show conn_mat
     ic = ic(
         pre_size = (10,),
-        post_size = (10,),
-        pre_ids = [0,0,0,1,1,2,7,8,8,9,9,9],
-        post_ids = [0,1,2,3,4,5,6,7,8,9,0,1]
+        post_size = (10,)
     ); print(ic.requires("conn_mat"))
 

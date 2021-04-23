@@ -20,60 +20,85 @@ if not os.path.exists(DIR_OUTPUTS): os.mkdir(DIR_OUTPUTS)
 ## default params
 # default stim_params
 default_stim_params = {
-    "white": stim_params(
-        name = "white",
-        height = 50,
-        width = 1,
-        intensity = [15,],
-        others = None
-    ),
+    "ipRGC": {
+        "white": stimulus.stim_params(
+            name = "white",
+            height = 40,
+            width = 1,
+            intensity = [15,],
+            others = None
+        ),
+    },
+    "PAC": {
+        "white": stimulus.stim_params(
+            name = "white",
+            height = 20,
+            width = 1,
+            intensity = [15,],
+            others = None
+        ),
+    },
 }
 # default net_params
 default_net_params = {
-    "RGC": {
-        "size": (95, 95),
-        # dynamic params
-        "V_reset": 0,
-        "V_th": 10,
-        "V_init": "gaussian",
-        "tau": 5,
-        "t_refractory": 3.5,
-        "noise_sigma": 1.7,
-        # local gap junction
-        "gj_w": 2.8,
-        "gj_spikelet": 0.15,
-        "gj_conn": bp.connect.GridEight(include_self = False),
-    },
-    "SC": {
-        "size": 1,
+    "ipRGC": {
+        ## neurons params
+        # shape params
+        "size": (40,),
         # dynamic params
         "V_reset": 0,
         "V_th": 10,
         "V_init": "reset",
-        "tau": 1,
-        "t_refractory": 0.35,
+        "tau": 5,
+        "t_refractory": 3.5,
+        "noise_sigma": 0.5,
+    },
+    "PAC": {
+        ## neurons params
+        # shape params
+        "size": (20,),
+        # dynamic params
+        "V_reset": 0,
+        "V_th": 10,
+        "V_init": "reset",
+        "tau": 5,
+        "t_refractory": 0.5,
         "noise_sigma": 0.1,
-        # params of conn between RGCs and RONs
-        "R2N_w": 0.24,
-        "R2N_delay": 0.1,
-    }
+    },
+    "GJ_RP": {
+        # gap junction
+        "neighbors": 1,
+        "weight": 0.5,
+        "k_spikelet": 0.15,
+        "conn": model.connector.IndexConnector(),
+    },
+    "ES_RP": {
+        # exp synapses
+       "neighbors": 2,
+        "weight": 0.5,
+        "delay": 0.1,
+        "tau": 8.,
+        "conn": model.connector.IndexConnector(),
+    },
 }
 
 def main():
     # init expr_curr
-    expr_curr = "circle"
+    expr_curr = "white"
     # init backend
     bp.backend.set(backend = "numpy")
     # init stimulus
-    _, _, stim_rgc = stimulus.stimulus.get(
-        stim_params = default_stim_params[expr_curr]
+    _, _, stim_iprgc = stimulus.stimulus.get(
+        stim_params = default_stim_params["ipRGC"][expr_curr]
     )
-    stim_sc = 2
-    # inst RGC_SC_Net
-    net = model.RGC_SC_Net(net_params = default_net_params, run_params = {
+    _, _, stim_pac = stimulus.stimulus.get(
+        stim_params = default_stim_params["PAC"][expr_curr]
+    )
+    # inst RPNet
+    net = model.RPNet(net_params = default_net_params, run_params = {
         "inputs": {
-            "RGC": stim_rgc,
-            "SC": stim_sc,
+            "ipRGC": stim_iprgc,
+            "PAC": stim_pac,
         },
         "dt": 0.01,
         "duration": 8,

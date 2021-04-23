@@ -20,11 +20,74 @@ class RPNet(bp.Network):
     Network composed of ipRGC and PAC.
     """
 
+    @staticmethod
+    def gen_neighbors(num_i, num_e, neighbors = 1):
+        num_ratio = int(num_e / num_i)
+        assert (num_e / num_i) == int(num_e / num_i)
+
+        neighbors_ii, neighbors_ie, neighbors_ei, neighbors_ee = [[],[]], [[],[]], [[],[]], [[],[]]
+        # set neighbors_ii & neighbors_ie
+        for pre_idx in range(num_i):
+            for neighbor in range(neighbors):
+                # get pre_id on circle
+                pre_id = pre_idx * (num_ratio + 1)
+                ## set right neighbors
+                # get post_id on circle
+                post_id = pre_id + (neighbor + 1)
+                if post_id >= (num_i + num_e): post_id -= (num_i + num_e)
+                # get post_idx
+                if (post_id / (num_ratio + 1)) == int(post_id / (num_ratio + 1)):
+                    post_idx = int(post_id / (num_ratio + 1))
+                    neighbors_ii[0].append(pre_idx); neighbors_ii[1].append(post_idx)
+                else:
+                    post_idx = num_ratio * (post_id // (num_ratio + 1)) + (post_id % (num_ratio + 1)) - 1
+                    neighbors_ie[0].append(pre_idx); neighbors_ie[1].append(post_idx)
+                ## set left neighbors
+                # get post_id on circle
+                post_id = pre_id - (neighbor + 1)
+                if post_id < 0: post_id += (num_i + num_e)
+                # get post_idx
+                if (post_id / (num_ratio + 1)) == int(post_id / (num_ratio + 1)):
+                    post_idx = int(post_id / (num_ratio + 1))
+                    neighbors_ii[0].append(pre_idx); neighbors_ii[1].append(post_idx)
+                else:
+                    post_idx = num_ratio * (post_id // (num_ratio + 1)) + (post_id % (num_ratio + 1)) - 1
+                    neighbors_ie[0].append(pre_idx); neighbors_ie[1].append(post_idx)
+        # set neighbors_ei & neighbors_ee
+        for pre_idx in range(num_e):
+            for neighbor in range(neighbors):
+                # get pre_id on circle
+                pre_id = ((num_ratio + 1) * (pre_idx // num_ratio)) + (pre_idx % num_ratio) + 1
+                ## set right neighbors
+                # get post_id on circle
+                post_id = pre_id + (neighbor + 1)
+                if post_id >= (num_i + num_e): post_id -= (num_i + num_e)
+                # get post_idx
+                if (post_id / (num_ratio + 1)) == int(post_id / (num_ratio + 1)):
+                    post_idx = int(post_id / (num_ratio + 1))
+                    neighbors_ei[0].append(pre_idx); neighbors_ei[1].append(post_idx)
+                else:
+                    post_idx = num_ratio * (post_id // (num_ratio + 1)) + (post_id % (num_ratio + 1)) - 1
+                    neighbors_ee[0].append(pre_idx); neighbors_ee[1].append(post_idx)
+                ## set left neighbors
+                # get post_id on circle
+                post_id = pre_id - (neighbor + 1)
+                if post_id < 0: post_id += (num_i + num_e)
+                # get post_idx
+                if (post_id / (num_ratio + 1)) == int(post_id / (num_ratio + 1)):
+                    post_idx = int(post_id / (num_ratio + 1))
+                    neighbors_ei[0].append(pre_idx); neighbors_ei[1].append(post_idx)
+                else:
+                    post_idx = num_ratio * (post_id // (num_ratio + 1)) + (post_id % (num_ratio + 1)) - 1
+                    neighbors_ee[0].append(pre_idx); neighbors_ee[1].append(post_idx)
+
+        return neighbors_ii, neighbors_ie, neighbors_ei, neighbors_ee
+
     def __init__(self, net_params = {
         "ipRGC": {
             ## neurons params
             # shape params
-            "size": (60, 60),
+            "size": (40,),
             # dynamic params
             "V_reset": 0,
             "V_th": 10,
@@ -32,20 +95,11 @@ class RPNet(bp.Network):
             "tau": 5,
             "t_refractory": 3.5,
             "noise_sigma": 0.5,
-            ## synapses params
-            # gap junction
-            "gj_w": 0.5,
-            "gj_spikelet": 0.15,
-            "gj_conn": bp.connect.GridEight(include_self = False),
-            # exp synapses
-            "es_w": 0.5,
-            "es_delay": 0.1,
-            "es_conn": connector.NeighborConnector(neighbors = 1)
         },
         "PAC": {
             ## neurons params
             # shape params
-            "size": 1,
+            "size": (20,),
             # dynamic params
             "V_reset": 0,
             "V_th": 10,
@@ -53,16 +107,26 @@ class RPNet(bp.Network):
             "tau": 5,
             "t_refractory": 0.5,
             "noise_sigma": 0.1,
-            ## synapses params
+        },
+        "GJ_RP": {
             # gap junction
-            "gj_w": 0.5,
-            "gj_spikelet": 0.15,
-            "gj_conn": bp.connect.GridEight(include_self = False),
-        }
+            "neighbors": 1,
+            "weight": 0.5,
+            "k_spikelet": 0.15,
+            "conn": connector.IndexConnector(),
+        },
+        "ES_RP": {
+            # exp synapses
+            "neighbors": 2,
+            "weight": 0.5,
+            "delay": 0.1,
+            "tau": 8.,
+            "conn": connector.IndexConnector(),
+        },
     }, run_params = {
         "inputs": {
-            "RGC": 0.,
-            "SC": 0.,
+            "ipRGC": 0.,
+            "PAC": 0.,
         },
         "dt": 0.01,
         "duration": 20,
@@ -75,66 +139,141 @@ class RPNet(bp.Network):
         bp.backend.set(dt = run_params["dt"])
 
         ## init comps of network
-        # init rgc
-        self.rgc = neurons.LIF(
-            size = net_params["RGC"]["size"],
-            V_rest = net_params["RGC"]["V_reset"],
-            V_reset = net_params["RGC"]["V_reset"],
-            V_th = net_params["RGC"]["V_th"],
-            V_init = net_params["RGC"]["V_init"],
+        # init iprgc
+        self.iprgc = neurons.LIF(
+            size = net_params["ipRGC"]["size"],
+            V_rest = net_params["ipRGC"]["V_reset"],
+            V_reset = net_params["ipRGC"]["V_reset"],
+            V_th = net_params["ipRGC"]["V_th"],
+            V_init = net_params["ipRGC"]["V_init"],
             R = 1.,
-            tau = net_params["RGC"]["tau"],
-            t_refractory = net_params["RGC"]["t_refractory"],
-            noise = net_params["RGC"]["noise_sigma"],
+            tau = net_params["ipRGC"]["tau"],
+            t_refractory = net_params["ipRGC"]["t_refractory"],
+            noise = net_params["ipRGC"]["noise_sigma"],
             # monitor
             monitors = ["V", "spike"]
         )
-        # init gj in rgc
-        self.gj = synapses.GapJunction_LIF(
-            pre = self.rgc,
-            post = self.rgc,
-            conn = net_params["RGC"]["gj_conn"],
-            weight = net_params["RGC"]["gj_w"],
+        # init pac
+        self.pac = neurons.LIF(
+            size = net_params["PAC"]["size"],
+            V_rest = net_params["PAC"]["V_reset"],
+            V_reset = net_params["PAC"]["V_reset"],
+            V_th = net_params["PAC"]["V_th"],
+            V_init = net_params["PAC"]["V_init"],
+            R = 1.,
+            tau = net_params["PAC"]["tau"],
+            t_refractory = net_params["PAC"]["t_refractory"],
+            noise = net_params["PAC"]["noise_sigma"],
+            # monitor
+            monitors = ["V", "spike"]
+        )
+        ## init gj
+        # get neighbors
+        neighbors_pp, neighbors_pr, neighbors_rp, neighbors_rr = RPNet.gen_neighbors(
+            num_i = bp.size2len(net_params["PAC"]["size"]),
+            num_e = bp.size2len(net_params["ipRGC"]["size"]),
+            neighbors = net_params["GJ_RP"]["neighbors"]
+        )
+        # init gj_pp
+        self.gj_pp = synapses.GapJunction_LIF(
+            pre = self.pac,
+            post = self.pac,
+            conn = net_params["GJ_RP"]["conn"](
+                pre_size = net_params["PAC"]["size"],
+                post_size = net_params["PAC"]["size"],
+                pre_ids = neighbors_pp[0],
+                post_ids = neighbors_pp[1]
+            ),
+            weight = net_params["GJ_RP"]["weight"],
             delay = 0.,
-            k_spikelet = net_params["RGC"]["gj_spikelet"],
+            k_spikelet = net_params["GJ_RP"]["k_spikelet"],
             post_refractory = True
         )
-        # init sc
-        self.sc = neurons.LIF(
-            size = net_params["SC"]["size"],
-            V_rest = net_params["SC"]["V_reset"],
-            V_reset = net_params["SC"]["V_reset"],
-            V_th = net_params["SC"]["V_th"],
-            V_init = net_params["SC"]["V_init"],
-            R = 1.,
-            tau = net_params["SC"]["tau"],
-            t_refractory = net_params["SC"]["t_refractory"],
-            noise = net_params["SC"]["noise_sigma"],
-            # monitor
-            monitors = ["V", "spike"]
-        )
-        # init chem betweem rgc and sc
-        self.chem = synapses.VoltageJump(
-            pre = self.rgc,
-            post = self.sc,
-            conn = bp.connect.All2All(include_self = True),
-            weight = net_params["SC"]["R2N_w"],
-            delay = net_params["SC"]["R2N_delay"],
+        # init gj_pr
+        self.gj_pr = synapses.GapJunction_LIF(
+            pre = self.pac,
+            post = self.iprgc,
+            conn = net_params["GJ_RP"]["conn"](
+                pre_size = net_params["PAC"]["size"],
+                post_size = net_params["ipRGC"]["size"],
+                pre_ids = neighbors_pr[0],
+                post_ids = neighbors_pr[1]
+            ),
+            weight = net_params["GJ_RP"]["weight"],
+            delay = 0.,
+            k_spikelet = net_params["GJ_RP"]["k_spikelet"],
             post_refractory = True
+        )
+        # init gj_rp
+        self.gj_rp = synapses.GapJunction_LIF(
+            pre = self.iprgc,
+            post = self.pac,
+            conn = net_params["GJ_RP"]["conn"](
+                pre_size = net_params["ipRGC"]["size"],
+                post_size = net_params["PAC"]["size"],
+                pre_ids = neighbors_rp[0],
+                post_ids = neighbors_rp[1]
+            ),
+            weight = net_params["GJ_RP"]["weight"],
+            delay = 0.,
+            k_spikelet = net_params["GJ_RP"]["k_spikelet"],
+            post_refractory = True
+        )
+        # init gj_rr
+        self.gj_rr = synapses.GapJunction_LIF(
+            pre = self.iprgc,
+            post = self.iprgc,
+            conn = net_params["GJ_RP"]["conn"](
+                pre_size = net_params["ipRGC"]["size"],
+                post_size = net_params["ipRGC"]["size"],
+                pre_ids = neighbors_rr[0],
+                post_ids = neighbors_rr[1]
+            ),
+            weight = net_params["GJ_RP"]["weight"],
+            delay = 0.,
+            k_spikelet = net_params["GJ_RP"]["k_spikelet"],
+            post_refractory = True
+        )
+        ## init es
+        # get neighbors
+        _, neighbors_pr, _, _ = RPNet.gen_neighbors(
+            num_i = bp.size2len(net_params["PAC"]["size"]),
+            num_e = bp.size2len(net_params["ipRGC"]["size"]),
+            neighbors = net_params["ES_RP"]["neighbors"]
+        )
+        # init es_pr
+        self.es_pr = synapses.ExpSyn(
+            pre = self.pac,
+            post = self.iprgc,
+            conn = net_params["ES_RP"]["conn"](
+                pre_size = net_params["PAC"]["size"],
+                post_size = net_params["ipRGC"]["size"],
+                pre_ids = neighbors_pr[0],
+                post_ids = neighbors_pr[1]
+            ),
+            weight = -net_params["ES_RP"]["weight"],
+            delay = net_params["ES_RP"]["delay"],
+            tau = net_params["ES_RP"]["tau"]
         )
 
         # integrate network
-        self.network = super(RGC_SC_Net, self).__init__(
-            self.rgc, self.sc, self.gj, self.chem
+        self.network = super(RPNet, self).__init__(
+            ## neurons
+            self.iprgc, self.pac,
+            ## synapses
+            # gap junction
+            self.gj_pp, self.gj_pr, self.gj_rp, self.gj_rr,
+            # exp syn
+            self.es_pr
         )
 
     def run(self, report = True, report_percent = 0.1):
         # excute super.run
-        super(RGC_SC_Net, self).run(
+        super(RPNet, self).run(
             duration = self.run_params["duration"],
             inputs = (
-                (self.rgc, "input", self.run_params["inputs"]["RGC"]),
-                (self.sc, "input", self.run_params["inputs"]["SC"]),
+                (self.iprgc, "input", self.run_params["inputs"]["ipRGC"]),
+                (self.pac, "input", self.run_params["inputs"]["PAC"]),
             ),
             report = report,
             report_percent = report_percent
@@ -142,8 +281,8 @@ class RPNet(bp.Network):
 
     def get_monitors(self):
         monitors = {
-            "RGC": self.rgc.mon,
-            "SC": self.sc.mon,
+            "ipRGC": self.iprgc.mon,
+            "PAC": self.pac.mon,
         }
         return monitors
 
@@ -155,36 +294,43 @@ class RPNet(bp.Network):
         )
         gs = GridSpec(3, 1, figure = fig)
 
-        ## axes 11: show RGC spikes
+        ## axes 11: show ipRGC spikes
         ax11 = fig.add_subplot(gs[0:2,:])
         # get neu_idx & t_spike
         neu_idx, t_spike = bp.measure.raster_plot(
-            sp_matrix = self.rgc.mon.spike,
-            times = self.rgc.mon.ts
+            sp_matrix = self.iprgc.mon.spike,
+            times = self.iprgc.mon.ts
         )
         # plot ax11
         ax11.plot(
             # plot 1
             t_spike, neu_idx, ".",
             # plot settings
-            markersize = 1
+            markersize = 2, color = "red"
         )
         ax11.set_xlim(left = -0.1, right = self.run_params["duration"] + 0.1)
-        ax11.set_ylim(bottom = -0.1, top = self.net_params["RGC"]["size"][0] * self.net_params["RGC"]["size"][1] + 0.1)
-        ax11.set_ylabel(ylabel = "RGCs")
+        ax11.set_ylim(bottom = -0.1, top = bp.size2len(self.net_params["ipRGC"]["size"]) + 0.1)
+        ax11.set_ylabel(ylabel = "ipRGCs")
         # ax11.set_xlabel(xlabel = "Time [{} ms]".format(self.run_params["duration"]))
         # ax11.set_title(label = "raster_plot(spike) of RGCs")
 
-        ## axes 12: show RON membrane potentials
+        ## axes 12: show PAC spikes
         ax12 = fig.add_subplot(gs[2:,:])
+        # get neu_idx & t_spike
+        neu_idx, t_spike = bp.measure.raster_plot(
+            sp_matrix = self.pac.mon.spike,
+            times = self.pac.mon.ts
+        )
         # plot ax12
         ax12.plot(
             # plot 1
-            self.sc.mon.ts, self.sc.mon.V[:,0]
+            t_spike, neu_idx, ".",
+            # plot settings
+            markersize = 2, color = "blue"
         )
         ax12.set_xlim(left = -0.1, right = self.run_params["duration"] + 0.1)
-        ax12.set_ylim(bottom = -0.1, top = self.net_params["RGC"]["V_th"] + 0.1)
-        ax12.set_ylabel(ylabel = "SC")
+        ax12.set_ylim(bottom = -0.1, top = bp.size2len(self.net_params["PAC"]["size"]) + 0.1)
+        ax12.set_ylabel(ylabel = "PACs")
         ax12.set_xlabel(xlabel = "Time [{} ms]".format(self.run_params["duration"]))
         # ax12.set_title(label = "line_plot(V) of RGCs")
 
