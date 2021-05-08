@@ -68,18 +68,6 @@ class stimulus(object):
     """
     # black stimulus funcs
     @staticmethod
-    def _white(height = 50, width = 50, stim_intensity = [15,], **kwargs):
-        # init arr
-        arr = np.ones((height, width), dtype=np.float32)
-
-        # reshape arr & set stim
-        arr = arr.reshape((height * width,))
-        idxs = [np.where(arr == _id)[0] for _id in [0.,]]
-        stim = arr * stim_intensity[0]
-        return arr, idxs, stim
-
-    # black stimulus funcs
-    @staticmethod
     def _black(height = 50, width = 50, stim_intensity = [15,], **kwargs):
         # init arr
         arr = np.zeros((height, width), dtype=np.float32)
@@ -90,11 +78,32 @@ class stimulus(object):
         stim = arr * stim_intensity[0]
         return arr, idxs, stim
 
+    # black stimulus funcs
+    @staticmethod
+    def _white(height = 50, width = 50, stim_intensity = [15,], stim_params = {
+        "noise": 0,
+    }):
+        # init arr
+        arr = np.ones((height, width), dtype=np.float32)
+
+        # reshape arr & set stim
+        arr = arr.reshape((height * width,))
+        idxs = [np.where(arr == _id)[0] for _id in [1.,]]
+        stim = arr * stim_intensity[0]
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
+        return arr, idxs, stim
+
     # cross stimulus funcs
     @staticmethod
     def _cross(height = 50, width = 50, stim_intensity = [12, 20], stim_params = {
         "length": 10,
         "lw": 5,
+        "noise": 0,
     }):
         # init arr & w_center & h_center
         arr = np.zeros((height, width), dtype = np.float32)
@@ -119,12 +128,19 @@ class stimulus(object):
         stim = np.zeros_like(arr)
         for i in range(len(stim_intensity)):
             stim[idxs[i]] = stim_intensity[i]
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
         return 1 - arr, idxs, stim
 
     # circle stimulus funcs
     @staticmethod
     def _circle(height = 50, width = 50, stim_intensity = [10, 15], stim_params = {
         "radius": 15,
+        "noise": 0,
     }):
         # init arr
         arr = np.zeros((height, width), dtype=np.float32)
@@ -141,6 +157,12 @@ class stimulus(object):
         stim = np.zeros_like(arr)
         for i in range(len(stim_intensity)):
             stim[idxs[i]] = stim_intensity[i]
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
         return 1 - arr, idxs, stim
 
     @staticmethod
@@ -148,6 +170,7 @@ class stimulus(object):
         "inner_radius": 15,
         "outer_radius": 20,
         "position": "center", # ["center", "corner", "line_middle"]
+        "noise": 0,
     }):
         # init arr & idxx
         arr = np.zeros((height, width), dtype=np.float32)
@@ -182,12 +205,19 @@ class stimulus(object):
         stim = np.zeros_like(arr)
         for i in range(len(stim_intensity)):
             stim[idxs[i]] = stim_intensity[i]
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
         return 1 - arr, idxs, stim
 
     @staticmethod
     def _two_holes(height = 50, width = 50, stim_intensity = [15, 15, 15, 20], stim_params = {
         "inner_radius": 8,
         "outer_radius": 24,
+        "noise": 0,
     }):
         # check r_i * 2 <= r_o
         assert stim_params["inner_radius"] * 2 <= stim_params["outer_radius"]
@@ -224,6 +254,12 @@ class stimulus(object):
         stim = np.zeros_like(arr)
         for i in range(len(stim_intensity)):
             stim[idxs[i]] = stim_intensity[i]
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
         return 1 - arr, idxs, stim
 
 class stim_params:
@@ -242,14 +278,18 @@ default_stim_params = {
         height = 50,
         width = 50,
         intensity = [15,],
-        others = None
+        others = {
+            "noise": 0,
+        }
     ),
     "black": stim_params(
         name = "black",
         height = 50,
         width = 50,
         intensity = [15,],
-        others = None
+        others = {
+            "noise": 0,
+        }
     ),
     "cross": stim_params(
         name = "cross",
@@ -258,7 +298,8 @@ default_stim_params = {
         intensity = [12, 20],
         others = {
             "length": 10,
-            "lw": 5
+            "lw": 5,
+            "noise": 0,
         }
     ),
     "circle": stim_params(
@@ -268,6 +309,7 @@ default_stim_params = {
         intensity = [10, 15],
         others = {
             "radius": 15,
+            "noise": 0,
         }
     ),
     "one_hole": stim_params(
@@ -279,6 +321,7 @@ default_stim_params = {
             "inner_radius": 15,
             "outer_radius": 20,
             "position": "center",
+            "noise": 0,
         }
     ),
     "two_holes": stim_params(
@@ -289,6 +332,7 @@ default_stim_params = {
         others = {
             "inner_radius": 8,
             "outer_radius": 24,
+            "noise": 0,
         }
     ),
 }

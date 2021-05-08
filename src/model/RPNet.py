@@ -149,7 +149,6 @@ class RPNet(bp.Network):
             R = 1.,
             tau = net_params["ipRGC"]["tau"],
             t_refractory = net_params["ipRGC"]["t_refractory"],
-            noise = net_params["ipRGC"]["noise_sigma"],
             # monitor
             monitors = ["V", "spike"]
         )
@@ -163,7 +162,6 @@ class RPNet(bp.Network):
             R = 1.,
             tau = net_params["PAC"]["tau"],
             t_refractory = net_params["PAC"]["t_refractory"],
-            noise = net_params["PAC"]["noise_sigma"],
             # monitor
             monitors = ["V", "spike"]
         )
@@ -186,6 +184,7 @@ class RPNet(bp.Network):
             ),
             weight = net_params["GJ_RP"]["weight"],
             delay = 0.,
+            neighbors = net_params["GJ_RP"]["neighbors"] * 2,
             k_spikelet = net_params["GJ_RP"]["k_spikelet"],
             post_refractory = True
         )
@@ -201,6 +200,7 @@ class RPNet(bp.Network):
             ),
             weight = net_params["GJ_RP"]["weight"],
             delay = 0.,
+            neighbors = net_params["GJ_RP"]["neighbors"] * 2,
             k_spikelet = net_params["GJ_RP"]["k_spikelet"],
             post_refractory = True
         )
@@ -216,6 +216,7 @@ class RPNet(bp.Network):
             ),
             weight = net_params["GJ_RP"]["weight"],
             delay = 0.,
+            neighbors = net_params["GJ_RP"]["neighbors"] * 2,
             k_spikelet = net_params["GJ_RP"]["k_spikelet"],
             post_refractory = True
         )
@@ -231,6 +232,7 @@ class RPNet(bp.Network):
             ),
             weight = net_params["GJ_RP"]["weight"],
             delay = 0.,
+            neighbors = net_params["GJ_RP"]["neighbors"] * 2,
             k_spikelet = net_params["GJ_RP"]["k_spikelet"],
             post_refractory = True
         )
@@ -253,6 +255,7 @@ class RPNet(bp.Network):
             ),
             weight = -net_params["ES_RP"]["weight"],
             delay = net_params["ES_RP"]["delay"],
+            neighbors = net_params["ES_RP"]["neighbors"] * 2,
             tau = net_params["ES_RP"]["tau"]
         )
 
@@ -267,7 +270,10 @@ class RPNet(bp.Network):
             self.es_pr
         )
 
-    def run(self, report = True, report_percent = 0.1):
+    def run(self, run_params = None, report = True, report_percent = 0.1):
+        # update run_params
+        if run_params != None: self.run_params = run_params
+
         # excute super.run
         super(RPNet, self).run(
             duration = self.run_params["duration"],

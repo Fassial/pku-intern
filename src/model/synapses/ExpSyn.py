@@ -17,11 +17,12 @@ class ExpSyn(bp.TwoEndConn):
         dsdt = -s / tau
         return dsdt
 
-    def __init__(self, pre, post, conn, weight = .1, delay = 0., tau = 8., **kwargs):
+    def __init__(self, pre, post, conn, weight = .1, delay = 0., neighbors = 1, tau = 8., **kwargs):
         # init params
         self.tau = tau
         self.delay = delay
         self.weight = weight
+        self.neighbors = neighbors
 
         # init connections
         self.conn = conn(pre.size, post.size)
@@ -48,6 +49,6 @@ class ExpSyn(bp.TwoEndConn):
     def update(self, _t):
         self.s = self.integral(self.s, _t, self.tau)
         self.s += bp.backend.unsqueeze(self.pre.spike, 1) * self.conn_mat
-        self.Isyn.push(self.w * self.s)
+        self.Isyn.push(self.w * self.s / self.neighbors)
         self.post.input += bp.backend.sum(self.Isyn.pull(), axis = 0)
 

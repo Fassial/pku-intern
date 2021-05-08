@@ -20,7 +20,7 @@ class LIF(bp.NeuGroup):
 
     def __init__(self, size,
         V_rest = 0., V_reset = -5., V_th = 20., V_init = "reset",
-        R = 1., tau = 10., t_refractory = 1., noise = 0., **kwargs
+        R = 1., tau = 10., t_refractory = 1., **kwargs
     ):
         # init params
         self.V_rest = V_rest
@@ -30,7 +30,6 @@ class LIF(bp.NeuGroup):
         self.R = R
         self.tau = tau
         self.t_refractory = t_refractory
-        self.noise = noise
 
         # init vars
         num = bp.size2len(size)
@@ -41,17 +40,10 @@ class LIF(bp.NeuGroup):
         self._init_V(num = num)
 
         # init integral
-        if self.noise == 0.:
-            self.integral = bp.odeint(
-                f = LIF.derivative,
-                method = "euler"
-            )
-        else:
-            self.integral = bp.sdeint(
-                f = LIF.derivative,
-                g = lambda V, t, Iext, V_rest, R, tau: (self.noise / tau),
-                method = "euler"
-            )
+        self.integral = bp.odeint(
+            f = LIF.derivative,
+            method = "euler"
+        )
 
         # init super
         super(LIF, self).__init__(size = size, **kwargs)
