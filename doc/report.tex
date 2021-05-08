@@ -110,6 +110,22 @@ A Neural Network Model with Gap Junction for Global Feature Extraction.
 \end{equation}
 其中，$\mu^{ext}$是外部输入的平均值，$\sigma^{2}$是外部输入震荡的幅度，$\eta_{i}(t)$满足$\left\langle\eta_{i}(t)\right\rangle = 0$，并且$\left\langle\eta_{i}(t)\eta_{j}(t')\right\rangle = \delta_{ij}\delta(t - t')$。通常情况下，幅度$\sigma^{2}$在我们的模拟中被设为一个恒定值，大概是外部平均输入的10\%。值得注意的是，E型神经元的外部输入平均值$\mu_{E}^{ext}$略大于I型神经元的外部输入平均值$\mu_{I}^{ext}$。其原因在于E型神经元是对ipRGC进行建模，ipRGC不仅接受双极细胞的输入（PAC仅有的外部输入），还接受自身黑色素产生的感光输入。
 
+\section{Results}
+  在神经元初始化时，我们使用Gaussian随机初始化。
+\subsection{PAC的抑制性化学突触近邻范围影响光自适应速度}
+  在我们将es\_neighbors设置为5时，ipRGC的发放很快便被抑制，如图\ref{fig:101-es5-w3.5}。当es\_neighbors被设置为3时，ipRGC的发放会持续更长的一段时间，如图\ref{fig:101-es3-w3.5}。
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/101-es5-w3.5.png}
+  \caption{fig:101-es5-w3.5}
+  \label{fig:101-es5-w3.5}
+\end{figure}\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/101-es3-w3.5.png}
+  \caption{fig:101-es3-w3.5}
+  \label{fig:101-es3-w3.5}
+\end{figure}
+
 % \nocite{*}
 \bibliography{ref/refs}
 
