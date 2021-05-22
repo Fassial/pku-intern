@@ -111,19 +111,58 @@ A Neural Network Model with Gap Junction for Global Feature Extraction.
 其中，$\mu^{ext}$是外部输入的平均值，$\sigma^{2}$是外部输入震荡的幅度，$\eta_{i}(t)$满足$\left\langle\eta_{i}(t)\right\rangle = 0$，并且$\left\langle\eta_{i}(t)\eta_{j}(t')\right\rangle = \delta_{ij}\delta(t - t')$。通常情况下，幅度$\sigma^{2}$在我们的模拟中被设为一个恒定值，大概是外部平均输入的10\%。值得注意的是，E型神经元的外部输入平均值$\mu_{E}^{ext}$略大于I型神经元的外部输入平均值$\mu_{I}^{ext}$。其原因在于E型神经元是对ipRGC进行建模，ipRGC不仅接受双极细胞的输入（PAC仅有的外部输入），还接受自身黑色素产生的感光输入。
 
 \section{Results}
-  在神经元初始化时，我们使用Gaussian随机初始化。
-\subsection{PAC的抑制性化学突触近邻范围影响光自适应速度}
+\subsection{Non-Normalization}
+  在该实验中，我们将光强设置为[12,0,12]序列（其中刺激为10时将激发神经元，与神经元的$V_th$相对应），没有添加输入噪声。模型结构上，未将突触的输入进行归一化。例如，一个神经元接受10个神经元的兴奋性输入，我们只是将其单纯地累加，没有将其除以10。其余结构不变。在神经元初始化时，我们使用Gaussian随机初始化。
+\subsubsection{PAC的抑制性化学突触近邻范围影响光自适应速度}
   在我们将es\_neighbors设置为5时，ipRGC的发放很快便被抑制，如图\ref{fig:101-es5-w3.5}。当es\_neighbors被设置为3时，ipRGC的发放会持续更长的一段时间，如图\ref{fig:101-es3-w3.5}。
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.6\textwidth]{figs/101-es5-w3.5.png}
   \caption{fig:101-es5-w3.5}
   \label{fig:101-es5-w3.5}
-\end{figure}\begin{figure}[!htb]
+\end{figure}
+\begin{figure}[!htb]
   \centering
   \includegraphics[width=0.6\textwidth]{figs/101-es3-w3.5.png}
   \caption{fig:101-es3-w3.5}
   \label{fig:101-es3-w3.5}
+\end{figure}
+\subsection{Normalization}
+  在实验中我们使用$\mu^{ext}$为9、$\sigma$为0.2的高斯分布输入刺激$I^{ext}$。模型结构上，将突触的输入进行归一化。例如，一个神经元接受10个神经元的兴奋性输入，我们在将其累加后除以10。其余结构不变。在这项实验中可以调节的参数有$weight_{ES}$、$neighbors_{ES}$、$weight_{GJ}$、$neighbors_{GJ}$。其余参数不变的原因如下：
+\begin{itemize}
+  \item $shape_{ipRGC}$\&$shape_{PAC}$：我将其分别取值为50、100。由于GJ和ES都是局部的，只要$shape_{ipRGC}$\&$shape_{PAC}$足够大，发放模式便与之无关。
+  \item $V_{reset}$\&$V_{th}$\&$V_{init}$：这些参数与刺激呈线性关系，由于刺激已经被固定，这些参数对于发放模式没有意义。
+  \item $tau$\&$t_{refractory}$：只会影响衰减的速率，由于刺激时长已经固定，不需要进行修改。
+  \item $k_{spikelet}$：该参数与$weight$起到相同的作用，没有调节该参数的必要。
+  \item $delay_{ES}$\&$tau_{ES}$：与神经元的衰减参数相对应。或许，以后实验应该将神经元的$tau$固定，修改该参数相对其的比例，查看效果。
+\end{itemize}
+\subsubsection{$neighbors_{ES}$、$weight_{ES}$影响发放间隔}
+  $neighbors_{ES}$、$weight_{ES}$会影响神经元的发放间隔，其中这里主要影响的是输入在阈值10以下的神经元，对于输入在10以上的神经元基本没有影响。而且这种影响比较general，在$weight_{GJ}$、$neighbors_{GJ}$取不同值时都会有该情况。其效果如下图所示：
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/white-1-0.1-1-0.1.png}
+  \caption{fig:white-1-0.1-1-0.1}
+  \label{fig:white-1-0.1-1-0.1}
+\end{figure}
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/white-1-0.1-1-0.9.png}
+  \caption{fig:white-1-0.1-1-0.9}
+  \label{fig:white-1-0.1-1-0.9}
+\end{figure}
+\subsubsection{$neighbors_{GJ}$、$weight_{GJ}$影响发放数目以及同步情况}
+   $neighbors_{GJ}$、$weight_{GJ}$会影响神经元的发放数目以及同步情况，该参数越大则越同步，发放神经元越少。其效果如下：
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/white-4-0.1-1-0.1.png}
+  \caption{fig:white-4-0.1-1-0.1}
+  \label{fig:white-4-0.1-1-0.1}
+\end{figure}
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/white-4-0.3-1-0.1.png}
+  \caption{fig:white-4-0.3-1-0.1}
+  \label{fig:white-4-0.3-1-0.1}
 \end{figure}
 
 % \nocite{*}
