@@ -50,8 +50,8 @@ class NeighborConnector(bp.connect.Connector):
             num_neuron = self.num_neuron,
             neighbors = self.neighbors
         )
-        self.pre_ids = bp.backend.as_tensor(pre_idxs)
-        self.post_ids = bp.backend.as_tensor(post_idxs)
+        self.pre_ids = bp.ops.as_tensor(pre_idxs)
+        self.post_ids = bp.ops.as_tensor(post_idxs)
         self.conn_mat = bp.connect.ij2mat(
             i = self.pre_ids,
             j = self.post_ids,

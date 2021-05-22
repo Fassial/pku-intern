@@ -27,12 +27,12 @@ class AlphaSyn(bp.TwoEndConn):
         # init connections
         self.conn = conn(pre.size, post.size)
         self.conn_mat = conn.requires("conn_mat")
-        self.size = bp.backend.shape(self.conn_mat)
+        self.size = bp.ops.shape(self.conn_mat)
 
         # init vars
-        self.s = bp.backend.zeros(self.size)
-        self.x = bp.backend.zeros(self.size)
-        self.w = bp.backend.ones(self.size) * self.weight
+        self.s = bp.ops.zeros(self.size)
+        self.x = bp.ops.zeros(self.size)
+        self.w = bp.ops.ones(self.size) * self.weight
         self.Isyn = self.register_constant_delay("Isyn",
             size = self.size,
             delay_time = self.delay
@@ -49,7 +49,7 @@ class AlphaSyn(bp.TwoEndConn):
 
     def update(self, _t):
         self.s, self.x = self.integral(self.s, self.x, _t, self.tau)
-        self.x += bp.backend.unsqueeze(self.pre.spike, 1) * self.conn_mat
+        self.x += bp.ops.unsqueeze(self.pre.spike, 1) * self.conn_mat
         self.Isyn.push(self.w * self.s)
-        self.post.input += bp.backend.sum(self.Isyn.pull(), axis = 0)
+        self.post.input += bp.ops.sum(self.Isyn.pull(), axis = 0)
 
