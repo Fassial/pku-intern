@@ -22,7 +22,16 @@ if not os.path.exists(DIR_OUTPUTS): os.mkdir(DIR_OUTPUTS)
 ## default params
 # default stim_params
 default_stim_params = {
-
+    "normal": stimulus.stim_params(
+        name = "normal",
+        height = 200,
+        width = 1,
+        duration = 100,
+        others = {
+            "freqs": np.full((200,), 20., dtype = np.float32),
+            "noise": 0.,
+        }
+    ),
 }
 # default net_params
 default_net_params = {
@@ -36,7 +45,7 @@ default_net_params = {
         "weight": .3,
         "conn": model.connector.IndexConnector(),
     },
-    "ES": {
+    "CHEMS": {
         "r": 1,
         "p": 1.,
         "weight": 2.,
@@ -44,10 +53,11 @@ default_net_params = {
     }
 }
 
-def main():
+def main(dt = 0.01):
     # init seed
     np.random.seed(0)
     # init backend
+    bp.backend.set(dt = dt)
     bp.backend.set(backend = "numpy")
 
     # init expr_curr
@@ -56,19 +66,14 @@ def main():
     # init inputs
     inputs_neurons = []
     # get stimulus
-    _, _, stim_neurons = stimulus.stimulus.get(
+    stim_neurons, _ = stimulus.stimulus.get(
         stim_params = default_stim_params[expr_curr]
-    ); inputs_neurons.append([stim_neurons, 1000])
-    # gen inputs
-    inputs_neurons, duration = bp.inputs.constant_current(inputs_neurons, dt = 0.01)
+    ); stim_neurons += 1.
     # inst FSI
     net = model.FSI(net_params = default_net_params, run_params = {
-        "inputs": {
-            "ipRGC": inputs_iprgc,
-            "PAC": inputs_pac,
-        },
-        "dt": 0.01,
-        "duration": duration,
+        "inputs": stim_neurons,
+        "dt": dt,
+        "duration": default_stim_params[expr_curr].duration,
     })
     # net run
     net.run(report = True)

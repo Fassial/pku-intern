@@ -1,9 +1,8 @@
 run:
-	ipython main.py
+	ipython test.py
 
 clean:
 	cd model && make clean
 	cd stimulus && make clean
-	cd test && make clean
 	rm -rf ./__pycache__
 

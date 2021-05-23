@@ -1,5 +1,5 @@
 """
-Created on 00:11, May. 23th, 2021
+Created on 00:11, May. 23rd, 2021
 Author: fassial
 Filename: InputRecorder.py
 """

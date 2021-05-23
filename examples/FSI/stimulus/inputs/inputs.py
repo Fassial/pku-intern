@@ -5,12 +5,9 @@ Filename: inputs.py
 """
 import brainpy as bp
 # local dep
-import os
-import sys
-sys.path.append(os.path.join("..", ".."))
 import model
-from PoissonInput import *
-from InputRecorder import *
+from .PoissonInput import *
+from .InputRecorder import *
 
 __all__ = [
     "poisson_input",
@@ -33,7 +30,7 @@ def poisson_input(duration, net_params = {
 }):
     ## init comps of network
     # inst PoissonInput
-    pi_inst = PoissonInput(size = net_params["neurons"]["size"], freqs = others["freqs"])
+    pi_inst = PoissonInput(size = net_params["neurons"]["size"], freqs = others["freqs"], monitors = ["spike"])
     # inst InputRecorder
     ir_inst = InputRecorder(size = net_params["neurons"]["size"])
     # inst TwoExpSyn
@@ -61,21 +58,9 @@ def poisson_input(duration, net_params = {
         report_percent = 0.1
     )
 
-    # get stim
+    # get stim & spike
     stim = ir_inst.get_Iext()
+    spike = pi_inst.mon.spike
 
-    return stim
-
-## define test func
-# define test_poisson_input func
-def test_poisson_input():
-    # get stim
-    stim = poisson_input(
-        duration = 100
-    )
-    # display stim
-    print(stim.shape)   # (duration / dt, size)
-
-if __name__ == "__main__":
-    test_poisson_input()
+    return stim, spike
 

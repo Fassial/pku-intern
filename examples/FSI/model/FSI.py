@@ -5,6 +5,7 @@ Filename: FSI.py
 """
 import numpy as np
 import brainpy as bp
+import matplotlib.pyplot as plt
 # local dep
 from . import neurons
 from . import synapses
@@ -109,13 +110,13 @@ class FSI(bp.Network):
             monitors = ["V", "spike"]
         )
         # init neighbors
-        neighbors_gj = gen_links(
+        neighbors_gj = FSI.gen_links(
             num_neu = bp.size2len(net_params["neurons"]["size"]),
             r = net_params["GJ"]["r"],
             p = net_params["GJ"]["p"],
             biconn = True
         )
-        neighbors_es = gen_links(
+        neighbors_es = FSI.gen_links(
             num_neu = bp.size2len(net_params["neurons"]["size"]),
             r = net_params["CHEMS"]["r"],
             p = net_params["CHEMS"]["p"],
@@ -153,7 +154,7 @@ class FSI(bp.Network):
         )
 
         # integrate network
-        self.network = super(RPNet, self).__init__(
+        self.network = super(FSI, self).__init__(
             ## neurons
             self.neurons,
             ## synapses
@@ -164,7 +165,7 @@ class FSI(bp.Network):
         )
 
     def run(self, report = True, report_percent = 0.1):
-        super(RPNet, self).run(
+        super(FSI, self).run(
             duration = self.run_params["duration"],
             inputs = (
                 (self.neurons, "input", self.run_params["inputs"]),
@@ -189,17 +190,18 @@ class FSI(bp.Network):
             times = self.neurons.mon.ts
         )
         # plot fig
-        fig.plot(
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot(
             # plot 1
             t_spike, neu_idx, ".",
             # plot settings
             markersize = 2, color = "blue"
         )
-        fig.set_xlim(left = -0.1, right = self.run_params["duration"] + 0.1)
-        fig.set_ylim(bottom = -0.1, top = bp.size2len(self.net_params["neurons"]["size"]) + 0.1)
-        fig.set_ylabel(ylabel = "neurons")
-        fig.set_xlabel(xlabel = "Time [{} ms]".format(self.run_params["duration"]))
-        fig.set_title(label = "raster_plot(spike) of neurons")
+        ax.set_xlim(left = -0.1, right = self.run_params["duration"] + 0.1)
+        ax.set_ylim(bottom = -0.1, top = bp.size2len(self.net_params["neurons"]["size"]) + 0.1)
+        ax.set_ylabel(ylabel = "neurons")
+        ax.set_xlabel(xlabel = "Time [{} ms]".format(self.run_params["duration"]))
+        ax.set_title(label = "raster_plot(spike) of neurons")
 
         # img show or save
         if img_fname:
