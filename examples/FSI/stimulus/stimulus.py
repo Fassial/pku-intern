@@ -108,7 +108,7 @@ class stimulus(object):
                 "size": (height, width),
             },
             "synapses": {
-                "weight": 2.,
+                "weight": 4.,
                 "delay": 0.,
                 "tau1": .3,
                 "tau2": 3.,

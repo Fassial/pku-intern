@@ -98,6 +98,7 @@ def main(dt = 0.01):
     # show net.mon
     net_monitors = net.get_monitors()
     net.show(img_fname = os.path.join(DIR_FIGS, expr_curr + ".png"))
+    net.save(spike_fname = os.path.join(DIR_OUTPUTS_SPIKE, expr_curr + "-" + str(dt) + ".csv"))
 
 if __name__ == "__main__":
     main()

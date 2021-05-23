@@ -177,6 +177,14 @@ class FSI(bp.Network):
     def get_monitors(self):
         return self.neurons.mon
 
+    def save(self, spike_fname = None):
+        np.savetxt(
+            fname = spike_fname,
+            X = self.neurons.mon.spike,
+            fmt = "%1d",
+            delimiter = ","
+        )
+
     def show(self, img_size = None, img_fname = None):
         # init fig & gs
         fig = plt.figure(
