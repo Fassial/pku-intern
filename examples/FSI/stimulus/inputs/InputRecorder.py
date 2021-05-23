@@ -4,6 +4,7 @@ Author: fassial
 Filename: InputRecorder.py
 """
 import brainpy as bp
+from copy import deepcopy
 
 __all__ = [
     "InputRecorder",
@@ -18,17 +19,17 @@ class InputRecorder(bp.NeuGroup):
 
         # init vars
         self.input = bp.ops.zeros(bp.size2len(self.size))
-        self.Iext = bp.ops.zeros(bp.size2len(self.size))
+        self.Iext = []
 
         # init super
         super(InputRecorder, self).__init__(size = size, **kwargs)
 
     def update(self, _t):
         # update Iext
-        self.Iext = bp.ops.vstack((self.Iext, self.input))
+        self.Iext.append(deepcopy(self.input))
         # reset input
         self.input[:] = 0.
 
     def get_Iext(self):
-        return self.Iext[1:,:]
+        return bp.ops.as_tensor(self.Iext)
 

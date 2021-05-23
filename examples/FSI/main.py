@@ -18,6 +18,10 @@ DIR_FIGS = os.path.join(DIR_ROOT, "figs")
 if not os.path.exists(DIR_FIGS): os.mkdir(DIR_FIGS)
 DIR_OUTPUTS = os.path.join(DIR_ROOT, "outputs")
 if not os.path.exists(DIR_OUTPUTS): os.mkdir(DIR_OUTPUTS)
+DIR_OUTPUTS_STIM = os.path.join(DIR_OUTPUTS, "stimulus")
+if not os.path.exists(DIR_OUTPUTS_STIM): os.mkdir(DIR_OUTPUTS_STIM)
+DIR_OUTPUTS_SPIKE = os.path.join(DIR_OUTPUTS, "spike")
+if not os.path.exists(DIR_OUTPUTS_SPIKE): os.mkdir(DIR_OUTPUTS_SPIKE)
 
 ## default params
 # default stim_params
@@ -26,7 +30,7 @@ default_stim_params = {
         name = "normal",
         height = 200,
         width = 1,
-        duration = 100,
+        duration = 1000,
         others = {
             "freqs": np.full((200,), 20., dtype = np.float32),
             "noise": 0.,
@@ -41,13 +45,13 @@ default_net_params = {
     },
     "GJ": {
         "r": 1,
-        "p": 1.,
+        "p": 0.,
         "weight": .3,
         "conn": model.connector.IndexConnector(),
     },
     "CHEMS": {
         "r": 1,
-        "p": 1.,
+        "p": 0.,
         "weight": 2.,
         "conn": model.connector.IndexConnector(),
     }
@@ -66,9 +70,23 @@ def main(dt = 0.01):
     # init inputs
     inputs_neurons = []
     # get stimulus
-    stim_neurons, _ = stimulus.stimulus.get(
-        stim_params = default_stim_params[expr_curr]
-    ); stim_neurons += 1.
+    stim_fname = os.path.join(
+        DIR_OUTPUTS_STIM,
+        expr_curr + "-" + str(default_stim_params[expr_curr].duration) + ".csv"
+    )
+    if os.path.exists(stim_fname):
+        # load stim
+        stim_neurons = np.loadtxt(
+            fname = stim_fname,
+            delimiter = ","
+        )
+    else:
+        # get stim
+        stim_neurons, _ = stimulus.stimulus.get(
+            stim_params = default_stim_params[expr_curr]
+        ); stim_neurons += .5
+        # save stim
+        np.savetxt(fname = stim_fname, X = stim_neurons, delimiter = ",")
     # inst FSI
     net = model.FSI(net_params = default_net_params, run_params = {
         "inputs": stim_neurons,

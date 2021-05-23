@@ -147,7 +147,7 @@ class FSI(bp.Network):
                 pre_ids = neighbors_es[0],
                 post_ids = neighbors_es[1]
             ),
-            weight = net_params["CHEMS"]["weight"],
+            weight = -net_params["CHEMS"]["weight"],
             delay = 0.,
             tau1 = .3,
             tau2 = 3.

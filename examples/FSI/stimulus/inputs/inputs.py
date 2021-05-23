@@ -20,7 +20,7 @@ def poisson_input(duration, net_params = {
         "size": (5,),
     },
     "synapses": {
-        "weight": .3,
+        "weight": 2.,
         "delay": 0.,
         "tau1": .3,
         "tau2": 3.,

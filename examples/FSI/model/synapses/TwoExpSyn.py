@@ -19,7 +19,7 @@ class TwoExpSyn(bp.TwoEndConn):
         return dsdt, dxdt
 
     def __init__(self, pre, post, conn,
-        weight = .3, delay = 0., tau1 = .3, tau2 = 3., **kwargs
+        weight = 2., delay = 0., tau1 = .3, tau2 = 3., **kwargs
     ):
         # init params
         self.weight = weight

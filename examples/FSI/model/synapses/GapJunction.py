@@ -13,7 +13,7 @@ __all__ = [
 class GapJunction(bp.TwoEndConn):
     target_backend = "general"
 
-    def __init__(self, pre, post, conn, weight = 1., delay = 0., **kwargs):
+    def __init__(self, pre, post, conn, weight = .3, delay = 0., **kwargs):
         # init params
         self.delay = delay
         self.weight = weight
@@ -41,7 +41,7 @@ class GapJunction(bp.TwoEndConn):
 class GapJunction_LIF(bp.TwoEndConn):
     target_backend = "general"
 
-    def __init__(self, pre, post, conn, weight = 1., delay = 0.,
+    def __init__(self, pre, post, conn, weight = .3, delay = 0.,
         k_spikelet = .1, post_refractory = True, **kwargs
     ):
         # init params
