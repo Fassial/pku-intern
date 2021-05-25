@@ -110,6 +110,31 @@ A Neural Network Model with Gap Junction for Global Feature Extraction.
 \end{equation}
 其中，$\mu^{ext}$是外部输入的平均值，$\sigma^{2}$是外部输入震荡的幅度，$\eta_{i}(t)$满足$\left\langle\eta_{i}(t)\right\rangle = 0$，并且$\left\langle\eta_{i}(t)\eta_{j}(t')\right\rangle = \delta_{ij}\delta(t - t')$。通常情况下，幅度$\sigma^{2}$在我们的模拟中被设为一个恒定值，大概是外部平均输入的10\%。值得注意的是，E型神经元的外部输入平均值$\mu_{E}^{ext}$略大于I型神经元的外部输入平均值$\mu_{I}^{ext}$。其原因在于E型神经元是对ipRGC进行建模，ipRGC不仅接受双极细胞的输入（PAC仅有的外部输入），还接受自身黑色素产生的感光输入。
 
+\subsection{FSI Neuronal Dynamics}
+\subsubsection{Archtecture}
+  FSI模型与上面提出的E-I平衡网络类似，也是一个环形结构，内部具有兴奋性电突触和抑制性化学突触。但与之不同的是，FSI模型中的每一个神经元同时具备这两种突触。同时，也为突触的连接模式加入了随机指数$p$，每一个近邻连接都具有$p$的可能性被一个随机连接取代。
+\subsubsection{Inputs}
+  FSI模型的inputs主要由一群以Poisson分布发放的神经元产生，这些神经元通过一对一的兴奋性TwoExpSyn连接到FSI模型。该神经元群由brainpy.inputs.PoissonInput实现，在其后连接TwoExpSyn，将spike转换为真实的$I_{syn}$输入，TwoExpSyn的动力学机制如下：
+\begin{equation}
+  \frac{dI_{syn}}{dt}=x \\
+  \tau_{1}\tau{2}\frac{dx}{dt}=-(\tau_{1}+\tau_{2})x-s+\sum\delta(t-t^{f})
+\end{equation}
+在得到对应的$I_{syn}$后，我们使用InputRecorder模块将其记录，在最后一步添加noise，对所有刺激增加0.5，即得到我们的输入矩阵。
+\subsubsection{FSI内部网络}
+  简便起见，模型内的所有神经元都是用LIF模型实现，其动力学机制如下：
+\begin{equation}
+  \tau_{m}\frac{dV_{j}}{dt}=-\alpha_{j}V_{j}+R_{s}I_{ext}-\sum_{k}w_{syn}^{jk}I_{syn}^{k}+\sum_{m}w_{gap}^{jm}\left(I_{gap}^{m}(t)+\sigma_{gap}(V_{m}-V_{j})\right)
+\end{equation}
+其中，$\alpha_{j}\in[1.0,1.3]$，不同神经元的$\alpha_{j}$不同。其中抑制性化学突触的动力学机制如下：
+\begin{equation}
+  \frac{dI_{syn}}{dt}=x \\
+  \tau_{1}\tau{2}\frac{dx}{dt}=-(\tau_{1}+\tau_{2})x-s+\sum\delta(t-t^{f})
+\end{equation}
+兴奋性电突触的动力学机制如下：
+\begin{equation}
+  I_{gap}^{m}=w_{gap}k_{spikelet}\delta\left(t-t_{m}^{spike}\right)
+\end{equation}
+
 \section{Results}
 \subsection{Non-Normalization}
   在该实验中，我们将光强设置为[12,0,12]序列（其中刺激为10时将激发神经元，与神经元的$V_th$相对应），没有添加输入噪声。模型结构上，未将突触的输入进行归一化。例如，一个神经元接受10个神经元的兴奋性输入，我们只是将其单纯地累加，没有将其除以10。其余结构不变。在神经元初始化时，我们使用Gaussian随机初始化。
