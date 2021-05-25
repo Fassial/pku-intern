@@ -6,6 +6,7 @@ Filename: stimulus.py
 import numpy as np
 import brainpy as bp
 import matplotlib.pyplot as plt
+from copy import deepcopy
 # local dep
 from . import inputs
 
@@ -96,7 +97,7 @@ class stimulus(object):
 
         return stim, spike
 
-    # black stimulus funcs
+    # normal stimulus funcs
     @staticmethod
     def _normal(height = 100, width = 1, duration = 100, stim_params = {
         "freqs": np.full((100,), 20., dtype = np.float32),
@@ -108,7 +109,7 @@ class stimulus(object):
                 "size": (height, width),
             },
             "synapses": {
-                "weight": 4.,
+                "weight": 8.,
                 "delay": 0.,
                 "tau1": .3,
                 "tau2": 3.,
@@ -116,6 +117,62 @@ class stimulus(object):
         }, others = {
             "freqs": stim_params["freqs"],
         })
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
+
+        return stim, spike
+
+    @staticmethod
+    def _frate_increase(height = 100, width = 1, duration = 100, stim_params = {
+        "freqs": np.full((100,), 20., dtype = np.float32),
+        "factor": 4.,   # (1,16)
+        "ratio": .2,
+        "noise": 0.,
+    }):
+        ## normal stim
+        # init freqs
+        freqs = deepcopy(stim_params["freqs"])
+        # set stim1 & spike1
+        stim1, spike1 = inputs.poisson_input(duration = duration // 2, net_params = {
+            "neurons": {
+                "size": (height, width),
+            },
+            "synapses": {
+                "weight": 4.,
+                "delay": 0.,
+                "tau1": .3,
+                "tau2": 3.,
+            }
+        }, others = {
+            "freqs": freqs,
+        })
+
+        ## frate_increase stim
+        # init idxs & freqs
+        idxs = [i for i in range(int(height*(.5-stim_params["ratio"]/2)), int(height*(.5+stim_params["ratio"]/2)))]
+        freqs[idxs] *= stim_params["factor"]
+        # set stim2, spike2
+        stim2, spike2 = inputs.poisson_input(duration = duration // 2, net_params = {
+            "neurons": {
+                "size": (height, width),
+            },
+            "synapses": {
+                "weight": 4.,
+                "delay": 0.,
+                "tau1": .3,
+                "tau2": 3.,
+            }
+        }, others = {
+            "freqs": freqs,
+        })
+
+        # set stim, spike
+        stim = np.vstack((stim1, stim2))
+        spike = np.vstack((spike1, spike2))
         # add noise to stim
         stim *= np.random.normal(
             loc = 1.,
@@ -143,6 +200,18 @@ default_stim_params = {
         duration = 100,
         others = {
             "freqs": np.full((100,), 20., dtype = np.float32),
+            "noise": 0.,
+        }
+    ),
+    "frate_increase": stim_params(
+        name = "frate_increase",
+        height = 100,
+        width = 1,
+        duration = 100,
+        others = {
+            "freqs": np.full((100,), 20., dtype = np.float32),
+            "factor": 4.,    # (1,16)
+            "ratio": .2,
             "noise": 0.,
         }
     ),
