@@ -1,16 +1,20 @@
 """
-Created on 23:07, Apr. 22nd, 2021
+Created on 14:30, May. 30th, 2021
 Author: fassial
-Filename: main.py
+Filename: expr1.py
+Description:
+    TODO
 """
-import os
-import copy
-import pickle
 import numpy as np
 import brainpy as bp
+from copy import deepcopy
 # local dep
+import os
+import sys
+sys.path.append(os.path.join("..", ".."))
 import model
 import stimulus
+import utils
 
 # macro
 DIR_ROOT = os.getcwd()
@@ -144,13 +148,26 @@ default_net_params = {
     },
 }
 
-def main(dt = 0.01):
-    # init seed & expr_curr
+def expr(gj_neigh, gj_w, es_neigh, es_w, dt = 0.01):
+    print("processing expr(" +\
+        str(gj_neigh) + "," + str(gj_w) + "," +\
+        str(es_neigh) + "," + str(es_w) + ")..."
+    )
+
+    # init seed
     np.random.seed(0)
-    expr_curr = "normal"
     # init backend
     bp.backend.set(dt = dt)
     bp.backend.set(backend = "numpy")
+
+    # init expr_curr
+    expr_curr = "white"
+
+    ## prepare expr
+    # init net_params
+    net_params = deepcopy(default_net_params)
+    net_params["GJ_RP"]["weight"] = gj_w; net_params["GJ_RP"]["neighbors"] = gj_neigh
+    net_params["ES_RP"]["weight"] = es_w; net_params["ES_RP"]["neighbors"] = es_neigh; print(net_params)
 
     ## get stim
     # get stim_fname
@@ -191,7 +208,7 @@ def main(dt = 0.01):
         # save stim
         np.savetxt(fname = stim_pac_fname, X = stim_pac, delimiter = ",")
 
-    ## exec sim
+    ## exec expr
     # inst RPNet
     net = model.RPNet(net_params = default_net_params, run_params = {
         "inputs": {
@@ -205,7 +222,52 @@ def main(dt = 0.01):
     net.run(report = True)
     # show net.mon
     net_monitors = net.get_monitors()
-    net.show(img_fname = os.path.join(DIR_FIGS, expr_curr + ".png"))
+    net.show(img_fname = os.path.join(DIR_FIGS,
+        expr_curr + "-" + str(gj_neigh) + "-" + str(gj_w) + "-" +\
+        str(es_neigh) + "-" + str(es_w) + ".png"
+    ))
+    net.save(spike_fname = os.path.join(DIR_OUTPUTS_SPIKE,
+        expr_curr + "-" + str(gj_neigh) + "-" + str(gj_w) + "-" +\
+        str(es_neigh) + "-" + str(es_w) + ".csv"
+    ))
+
+    ## compute omega
+    spike = bp.ops.vstack((net_monitors["ipRGC"].spike.T, net_monitors["PAC"].spike.T))
+    print(spike.shape)
+    omega = utils.get_omega(spike = spike, dt = dt)
+
+    return omega
+
+def main(dt = 0.01):
+    # init omegas
+    omegas = []
+
+    # init gj_neighs & gj_ws & es_neighs & es_ws
+    gj_neighs = [1, 3, 5, 10]
+    gj_ws = [.1, .3, .5]
+    es_neighs = [3, 10]
+    es_ws = [.5]
+
+    # set omegas
+    for gj_neigh in gj_neighs:
+        for gj_w in gj_ws:
+            for es_neigh in es_neighs:
+                for es_w in es_ws:
+                    expr(
+                        gj_neigh = gj_neigh,
+                        gj_w = gj_w,
+                        es_neigh = es_neigh,
+                        es_w = es_w,
+                        dt = dt
+                    )
+    omegas = np.array(omegas, dtype = np.float32)
+
+    # save omegas
+    np.savetxt(
+        fname = os.path.join(DIR_OUTPUTS, "omegas.csv"),
+        X = omegas,
+        delimiter = ","
+    )
 
 if __name__ == "__main__":
     main()

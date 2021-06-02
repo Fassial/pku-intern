@@ -1,28 +1,31 @@
 """
-Created on 16:58, Apr. 22nd, 2021
+Created on 20:09, May. 22nd, 2021
 Author: fassial
-Filename: AlphaSyn.py
+Filename: TwoExpSyn.py
 """
 import brainpy as bp
 
 __all__ = [
-    "AlphaSyn",
+    "TwoExpSyn",
 ]
 
-class AlphaSyn(bp.TwoEndConn):
+class TwoExpSyn(bp.TwoEndConn):
     target_backend = "general"
 
     @staticmethod
-    def derivative(s, x, t, tau):
-        dxdt = (-2 * tau * x - s) / (tau ** 2)
+    def derivative(s, x, t, tau1, tau2):
+        dxdt = (-(tau1 + tau2) * x - s) / (tau1 * tau2)
         dsdt = x
         return dsdt, dxdt
 
-    def __init__(self, pre, post, conn, weight = .2, delay = 0., tau = 2., **kwargs):
+    def __init__(self, pre, post, conn,
+        weight = 2., delay = 0., tau1 = .3, tau2 = 3., **kwargs
+    ):
         # init params
-        self.tau = tau
-        self.delay = delay
         self.weight = weight
+        self.delay = delay
+        self.tau1 = tau1
+        self.tau2 = tau2
 
         # init connections
         self.conn = conn(pre.size, post.size)
@@ -30,9 +33,9 @@ class AlphaSyn(bp.TwoEndConn):
         self.size = bp.ops.shape(self.conn_mat)
 
         # init vars
+        self.w = bp.ops.ones(self.size) * self.weight
         self.s = bp.ops.zeros(self.size)
         self.x = bp.ops.zeros(self.size)
-        self.w = bp.ops.ones(self.size) * self.weight
         self.Isyn = self.register_constant_delay("Isyn",
             size = self.size,
             delay_time = self.delay
@@ -40,16 +43,25 @@ class AlphaSyn(bp.TwoEndConn):
 
         # init integral
         self.integral = bp.odeint(
-            f = AlphaSyn.derivative,
+            f = TwoExpSyn.derivative,
             method = "euler"
         )
 
         # init super
-        super(AlphaSyn, self).__init__(pre = pre, post = post, **kwargs)
+        super(TwoExpSyn, self).__init__(pre = pre, post = post, **kwargs)
 
     def update(self, _t):
-        self.s, self.x = self.integral(self.s, self.x, _t, self.tau)
+        # get Isyn
+        self.s, self.x = self.integral(
+            s = self.s,
+            x = self.x,
+            t = _t,
+            tau1 = self.tau1,
+            tau2 = self.tau2
+        )
         self.x += bp.ops.unsqueeze(self.pre.spike, 1) * self.conn_mat
         self.Isyn.push(self.w * self.s)
+
+        # update post.input
         self.post.input += bp.ops.sum(self.Isyn.pull(), axis = 0)
 

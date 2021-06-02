@@ -4,5 +4,9 @@ Author: fassial
 Filename: __init__.py
 """
 
+# inputs model
+from . import inputs
+
+# stimulus model
 from .stimulus import *
 

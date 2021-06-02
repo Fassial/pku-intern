@@ -12,39 +12,31 @@ __all__ = [
 class VoltageJump(bp.TwoEndConn):
     target_backend = "general"
 
-    def __init__(self, pre, post, conn, weight = 1., delay = 0., post_refractory = False, **kwargs):
+    def __init__(self, pre, post, conn, weight = 1., delay = 0., **kwargs):
         # init params
         self.delay = delay
         self.weight = weight
-        self.post_refractory = post_refractory
 
         # init connections
         self.conn = conn(pre.size, post.size)
-        self.conn_mat = self.conn.requires("conn_mat")
-        self.size = bp.ops.shape(self.conn_mat)
+        self.pre_ids, self.post_ids = self.conn.requires("pre_ids", "post_ids")
+        self.size = len(self.pre_ids)
 
         # init vars
-        self.s = bp.ops.zeros(self.size)
         self.w = bp.ops.ones(self.size) * self.weight
         self.Isyn = self.register_constant_delay("Isyn",
             size = self.size,
-            delay_time = delay
+            delay_time = self.delay
         )
 
         # init super
         super(VoltageJump, self).__init__(pre = pre, post = post, **kwargs)
 
     def update(self, _t):
-        # set s
-        self.s = bp.ops.unsqueeze(self.pre.spike, 1) * self.conn_mat
-
-        # push Isyn
-        self.Isyn.push(self.s * self.w)
-
-        # set post.V & check post_refractory
-        if self.post_refractory:
-            refractor_map = (1. - bp.ops.unsqueeze(self.post.refractory, 0)) * self.conn_mat
-            self.post.V += bp.ops.sum(self.Isyn.pull() * refractor_map, axis = 0)
-        else:
-            self.post.V += bp.ops.sum(self.Isyn.pull(), axis = 0)
+        # set post.V
+        for i in range(self.size):
+            pre_id, post_id = self.pre_ids[i], self.post_ids[i]
+            self.Isyn.push(i, self.pre.spike[pre_id] * self.w[pre_id])
+            if not self.post.refractory[post_id]:
+                self.post.V += self.Isyn.pull(i)
 

@@ -6,6 +6,7 @@ Filename: __init__.py
 
 from .AlphaSyn import *
 from .ExpSyn import *
+from .TwoExpSyn import *
 from .GapJunction import *
 from .VoltageJump import *
 

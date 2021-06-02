@@ -3,6 +3,8 @@ Created on 18:52, Apr. 22nd, 2021
 Author: fassial
 Filename: RPNet.py
 """
+import os
+import numpy as np
 import brainpy as bp
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -89,38 +91,28 @@ class RPNet(bp.Network):
             # shape params
             "size": (40,),
             # dynamic params
-            "V_reset": 0,
-            "V_th": 10,
             "V_init": "reset",
-            "tau": 5,
-            "t_refractory": 3.5,
-            "noise_sigma": 0.5,
         },
         "PAC": {
             ## neurons params
             # shape params
             "size": (20,),
             # dynamic params
-            "V_reset": 0,
-            "V_th": 10,
             "V_init": "reset",
-            "tau": 5,
-            "t_refractory": 0.5,
-            "noise_sigma": 0.1,
         },
         "GJ_RP": {
             # gap junction
             "neighbors": 1,
-            "weight": 0.5,
-            "k_spikelet": 0.15,
+            "weight": .5,
+            "k_spikelet": .1,
             "conn": connector.IndexConnector(),
         },
         "ES_RP": {
             # exp synapses
             "neighbors": 2,
-            "weight": 0.5,
-            "delay": 0.1,
-            "tau": 8.,
+            "weight": .5,
+            "delay": .1,
+            "tau": .5,
             "conn": connector.IndexConnector(),
         },
     }, run_params = {
@@ -142,26 +134,26 @@ class RPNet(bp.Network):
         # init iprgc
         self.iprgc = neurons.LIF(
             size = net_params["ipRGC"]["size"],
-            V_rest = net_params["ipRGC"]["V_reset"],
-            V_reset = net_params["ipRGC"]["V_reset"],
-            V_th = net_params["ipRGC"]["V_th"],
+            V_rest = 0.,
+            V_reset = 0.,
+            V_th = 1.,
             V_init = net_params["ipRGC"]["V_init"],
             R = 1.,
-            tau = net_params["ipRGC"]["tau"],
-            t_refractory = net_params["ipRGC"]["t_refractory"],
+            tau = .5,
+            t_refractory = 5.,
             # monitor
             monitors = ["V", "spike"]
         )
         # init pac
         self.pac = neurons.LIF(
             size = net_params["PAC"]["size"],
-            V_rest = net_params["PAC"]["V_reset"],
-            V_reset = net_params["PAC"]["V_reset"],
-            V_th = net_params["PAC"]["V_th"],
+            V_rest = 0.,
+            V_reset = 0.,
+            V_th = 1.,
             V_init = net_params["PAC"]["V_init"],
             R = 1.,
-            tau = net_params["PAC"]["tau"],
-            t_refractory = net_params["PAC"]["t_refractory"],
+            tau = .5,
+            t_refractory = 5.,
             # monitor
             monitors = ["V", "spike"]
         )
@@ -183,10 +175,7 @@ class RPNet(bp.Network):
                 post_ids = neighbors_pp[1]
             ),
             weight = net_params["GJ_RP"]["weight"],
-            delay = 0.,
-            neighbors = net_params["GJ_RP"]["neighbors"] * 2,
-            k_spikelet = net_params["GJ_RP"]["k_spikelet"],
-            post_refractory = True
+            k_spikelet = net_params["GJ_RP"]["k_spikelet"]
         )
         # init gj_pr
         self.gj_pr = synapses.GapJunction_LIF(
@@ -199,10 +188,7 @@ class RPNet(bp.Network):
                 post_ids = neighbors_pr[1]
             ),
             weight = net_params["GJ_RP"]["weight"],
-            delay = 0.,
-            neighbors = net_params["GJ_RP"]["neighbors"] * 2,
-            k_spikelet = net_params["GJ_RP"]["k_spikelet"],
-            post_refractory = True
+            k_spikelet = net_params["GJ_RP"]["k_spikelet"]
         )
         # init gj_rp
         self.gj_rp = synapses.GapJunction_LIF(
@@ -215,10 +201,7 @@ class RPNet(bp.Network):
                 post_ids = neighbors_rp[1]
             ),
             weight = net_params["GJ_RP"]["weight"],
-            delay = 0.,
-            neighbors = net_params["GJ_RP"]["neighbors"] * 2,
-            k_spikelet = net_params["GJ_RP"]["k_spikelet"],
-            post_refractory = True
+            k_spikelet = net_params["GJ_RP"]["k_spikelet"]
         )
         # init gj_rr
         self.gj_rr = synapses.GapJunction_LIF(
@@ -231,10 +214,7 @@ class RPNet(bp.Network):
                 post_ids = neighbors_rr[1]
             ),
             weight = net_params["GJ_RP"]["weight"],
-            delay = 0.,
-            neighbors = net_params["GJ_RP"]["neighbors"] * 2,
-            k_spikelet = net_params["GJ_RP"]["k_spikelet"],
-            post_refractory = True
+            k_spikelet = net_params["GJ_RP"]["k_spikelet"]
         )
         ## init es
         # get neighbors
@@ -255,7 +235,6 @@ class RPNet(bp.Network):
             ),
             weight = -net_params["ES_RP"]["weight"],
             delay = net_params["ES_RP"]["delay"],
-            neighbors = net_params["ES_RP"]["neighbors"] * 2,
             tau = net_params["ES_RP"]["tau"]
         )
 
@@ -291,6 +270,25 @@ class RPNet(bp.Network):
             "PAC": self.pac.mon,
         }
         return monitors
+
+    def save(self, spike_fname = None):
+        # get spike_flist
+        spike_flist = os.path.splitext(spike_fname)
+
+        # save iprgc.spike
+        np.savetxt(
+            fname = spike_flist[0] + "-iprgc" + spike_flist[1],
+            X = self.iprgc.mon.spike,
+            fmt = "%1d",
+            delimiter = ","
+        )
+        # save pac.spike
+        np.savetxt(
+            fname = spike_flist[0] + "-pac" + spike_flist[1],
+            X = self.pac.mon.spike,
+            fmt = "%1d",
+            delimiter = ","
+        )
 
     def show(self, img_size = None, img_fname = None):
         # init fig & gs
