@@ -82,12 +82,29 @@ class stimulus(object):
     """
     # black stimulus funcs
     @staticmethod
-    def _black(height = 100, width = 1, stim_params = {
+    def _black(height = 100, width = 1, duration = 100, stim_params = {
         "noise": 0.,
     }):
         # set stim & spike
-        stim = np.zeros((height * width,), dtype=np.float32)
-        spike = np.zeros((height * width,), dtype=np.float32)
+        stim = np.zeros((int(duration / bp.backend.get_dt()), height * width), dtype=np.float32)
+        spike = np.zeros((int(duration / bp.backend.get_dt()), height * width), dtype=np.float32)
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
+
+        return stim, spike
+
+    # white stimulus funcs
+    @staticmethod
+    def _white(height = 100, width = 1, duration = 100, stim_params = {
+        "noise": 0.,
+    }):
+        # set stim & spike
+        stim = np.ones((int(duration / bp.backend.get_dt()), height * width), dtype=np.float32)
+        spike = np.zeros((int(duration / bp.backend.get_dt()), height * width), dtype=np.float32)
         # add noise to stim
         stim *= np.random.normal(
             loc = 1.,
