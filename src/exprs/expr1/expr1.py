@@ -123,6 +123,8 @@ default_net_params = {
         "size": (100,),
         # dynamic params
         "V_init": "gaussian",
+        "tau": .5,
+        "t_refractory": 5.,
     },
     "PAC": {
         ## neurons params
@@ -130,6 +132,8 @@ default_net_params = {
         "size": (50,),
         # dynamic params
         "V_init": "gaussian",
+        "tau": .5,
+        "t_refractory": 5.,
     },
     "GJ_RP": {
         # gap junction
@@ -207,6 +211,8 @@ def expr(gj_neigh, gj_w, es_neigh, es_w, dt = 0.01):
         )
         # save stim
         np.savetxt(fname = stim_pac_fname, X = stim_pac, delimiter = ",")
+    # rescale stim
+    stim_pac *= .95; stim_iprgc *= .95
 
     ## exec expr
     # inst RPNet

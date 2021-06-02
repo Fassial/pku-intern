@@ -92,6 +92,8 @@ class RPNet(bp.Network):
             "size": (40,),
             # dynamic params
             "V_init": "reset",
+            "tau": .5,
+            "t_refractory": 5.,
         },
         "PAC": {
             ## neurons params
@@ -99,6 +101,8 @@ class RPNet(bp.Network):
             "size": (20,),
             # dynamic params
             "V_init": "reset",
+            "tau": .5,
+            "t_refractory": 5.,
         },
         "GJ_RP": {
             # gap junction
@@ -139,8 +143,8 @@ class RPNet(bp.Network):
             V_th = 1.,
             V_init = net_params["ipRGC"]["V_init"],
             R = 1.,
-            tau = .5,
-            t_refractory = 5.,
+            tau = net_params["ipRGC"]["tau"],
+            t_refractory = net_params["ipRGC"]["t_refractory"],
             # monitor
             monitors = ["V", "spike"]
         )
@@ -152,8 +156,8 @@ class RPNet(bp.Network):
             V_th = 1.,
             V_init = net_params["PAC"]["V_init"],
             R = 1.,
-            tau = .5,
-            t_refractory = 5.,
+            tau = net_params["PAC"]["tau"],
+            t_refractory = net_params["PAC"]["t_refractory"],
             # monitor
             monitors = ["V", "spike"]
         )
