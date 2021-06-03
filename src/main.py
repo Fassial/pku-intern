@@ -42,7 +42,7 @@ default_stim_params = {
             width = 1,
             duration = 1000,
             others = {
-                "noise": .2,
+                "noise": 0.,
             }
         ),
         "normal": stimulus.stim_params(
@@ -52,7 +52,7 @@ default_stim_params = {
             duration = 1000,
             others = {
                 "freqs": np.full((100,), 20., dtype = np.float32),
-                "noise": .2,
+                "noise": 0.,
             }
         ),
         "frate_increase": stimulus.stim_params(
@@ -84,7 +84,7 @@ default_stim_params = {
             width = 1,
             duration = 1000,
             others = {
-                "noise": 0,
+                "noise": 0.,
             }
         ),
         "normal": stimulus.stim_params(
@@ -94,7 +94,7 @@ default_stim_params = {
             duration = 1000,
             others = {
                 "freqs": np.full((50,), 20., dtype = np.float32),
-                "noise": 0,
+                "noise": 0.,
             }
         ),
         "frate_increase": stimulus.stim_params(
@@ -166,7 +166,7 @@ def main(dt = 0.01):
         DIR_OUTPUTS_STIM,
         expr_curr + "-" + str(default_stim_params["PAC"][expr_curr].duration) + "-pac" + ".csv"
     )
-    # load stim_iprgc
+    # get stim_iprgc
     if os.path.exists(stim_iprgc_fname):
         # load stim
         stim_iprgc = np.loadtxt(
@@ -180,7 +180,7 @@ def main(dt = 0.01):
         )
         # save stim
         np.savetxt(fname = stim_iprgc_fname, X = stim_iprgc, delimiter = ",")
-    # load stim_pac
+    # get stim_pac
     if os.path.exists(stim_pac_fname):
         # load stim
         stim_pac = np.loadtxt(

@@ -210,6 +210,24 @@ class stim_params:
         self.others = others
 
 default_stim_params = {
+    "white": stim_params(
+        name = "white",
+        height = 100,
+        width = 1,
+        duration = 100,
+        others = {
+            "noise": 0.,
+        }
+    ),
+    "black": stim_params(
+        name = "black",
+        height = 100,
+        width = 1,
+        duration = 100,
+        others = {
+            "noise": 0.,
+        }
+    ),
     "normal": stim_params(
         name = "normal",
         height = 100,

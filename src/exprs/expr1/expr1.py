@@ -183,7 +183,7 @@ def expr(gj_neigh, gj_w, es_neigh, es_w, dt = 0.01):
         DIR_OUTPUTS_STIM,
         expr_curr + "-" + str(default_stim_params["PAC"][expr_curr].duration) + "-pac" + ".csv"
     )
-    # load stim_iprgc
+    # get stim_iprgc
     if os.path.exists(stim_iprgc_fname):
         # load stim
         stim_iprgc = np.loadtxt(
@@ -197,7 +197,7 @@ def expr(gj_neigh, gj_w, es_neigh, es_w, dt = 0.01):
         )
         # save stim
         np.savetxt(fname = stim_iprgc_fname, X = stim_iprgc, delimiter = ",")
-    # load stim_pac
+    # get stim_pac
     if os.path.exists(stim_pac_fname):
         # load stim
         stim_pac = np.loadtxt(
