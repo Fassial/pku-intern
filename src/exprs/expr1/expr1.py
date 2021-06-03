@@ -216,7 +216,7 @@ def expr(gj_neigh, gj_w, es_neigh, es_w, dt = 0.01):
 
     ## exec expr
     # inst RPNet
-    net = model.RPNet(net_params = default_net_params, run_params = {
+    net = model.RPNet(net_params = net_params, run_params = {
         "inputs": {
             "ipRGC": stim_iprgc,
             "PAC": stim_pac,
@@ -251,8 +251,8 @@ def main(dt = 0.01):
     # init gj_neighs & gj_ws & es_neighs & es_ws
     gj_neighs = [1, 3, 5, 10]
     gj_ws = [.1, .3, .5]
-    es_neighs = [3, 10]
-    es_ws = [.5]
+    es_neighs = [1, 3, 5, 10]
+    es_ws = [.1, .3, .5]
 
     # set omegas
     for gj_neigh in gj_neighs:

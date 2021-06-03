@@ -152,10 +152,10 @@ default_net_params = {
     },
 }
 
-def expr(gj_tau, gj_t_refractory, es_tau, es_t_refractory, dt = 0.01):
+def expr(iprgc_tau, iprgc_t_refractory, pac_tau, pac_t_refractory, dt = 0.01):
     print("processing expr(" +\
-        str(gj_tau) + "," + str(gj_t_refractory) + "," +\
-        str(es_tau) + "," + str(es_t_refractory) + ")..."
+        str(iprgc_tau) + "," + str(iprgc_t_refractory) + "," +\
+        str(pac_tau) + "," + str(pac_t_refractory) + ")..."
     )
 
     # init seed
@@ -170,8 +170,8 @@ def expr(gj_tau, gj_t_refractory, es_tau, es_t_refractory, dt = 0.01):
     ## prepare expr
     # init net_params
     net_params = deepcopy(default_net_params)
-    net_params["GJ_RP"]["tau"] = gj_tau; net_params["GJ_RP"]["neighbors"] = gj_t_refractory
-    net_params["ES_RP"]["tau"] = es_tau; net_params["ES_RP"]["neighbors"] = es_t_refractory; print(net_params)
+    net_params["ipRGC"]["tau"] = iprgc_tau; net_params["ipRGC"]["t_refractory"] = iprgc_t_refractory
+    net_params["PAC"]["tau"] = pac_tau; net_params["PAC"]["t_refractory"] = pac_t_refractory; print(net_params)
 
     ## get stim
     # get stim_fname
@@ -216,7 +216,7 @@ def expr(gj_tau, gj_t_refractory, es_tau, es_t_refractory, dt = 0.01):
 
     ## exec expr
     # inst RPNet
-    net = model.RPNet(net_params = default_net_params, run_params = {
+    net = model.RPNet(net_params = net_params, run_params = {
         "inputs": {
             "ipRGC": stim_iprgc,
             "PAC": stim_pac,
@@ -229,12 +229,12 @@ def expr(gj_tau, gj_t_refractory, es_tau, es_t_refractory, dt = 0.01):
     # show net.mon
     net_monitors = net.get_monitors()
     net.show(img_fname = os.path.join(DIR_FIGS,
-        expr_curr + "-" + str(gj_tau) + "-" + str(gj_t_refractory) + "-" +\
-        str(es_tau) + "-" + str(es_t_refractory) + ".png"
+        expr_curr + "-" + str(iprgc_tau) + "-" + str(iprgc_t_refractory) + "-" +\
+        str(pac_tau) + "-" + str(pac_t_refractory) + ".png"
     ))
     net.save(spike_fname = os.path.join(DIR_OUTPUTS_SPIKE,
-        expr_curr + "-" + str(gj_tau) + "-" + str(gj_t_refractory) + "-" +\
-        str(es_tau) + "-" + str(es_t_refractory) + ".csv"
+        expr_curr + "-" + str(iprgc_tau) + "-" + str(iprgc_t_refractory) + "-" +\
+        str(pac_tau) + "-" + str(pac_t_refractory) + ".csv"
     ))
 
     ## compute omega
@@ -248,22 +248,22 @@ def main(dt = 0.01):
     # init omegas
     omegas = []
 
-    # init gj_neighs & gj_ws & es_neighs & es_ws
-    gj_taus = [.5, 1., 2.]
-    gj_t_refractorys = [.5, 1., 2., 5.]
-    es_taus = [.5, 1., 2.]
-    es_t_refractorys = [.5, 1., 2., 5.]
+    # init iprgc_taus & iprgc_t_refractorys & pac_taus & pac_t_refractorys
+    iprgc_taus = [.5, 1., 2.]
+    iprgc_t_refractorys = [.5, 1., 2., 5.]
+    pac_taus = [.5, 1., 2.]
+    pac_t_refractorys = [.5, 1., 2., 5.]
 
     # set omegas
-    for gj_tau in gj_taus:
-        for gj_t_refractory in gj_t_refractorys:
-            for es_tau in es_taus:
-                for es_t_refractory in es_t_refractorys:
+    for iprgc_tau in iprgc_taus:
+        for iprgc_t_refractory in iprgc_t_refractorys:
+            for pac_tau in pac_taus:
+                for pac_t_refractory in pac_t_refractorys:
                     expr(
-                        gj_tau = gj_tau,
-                        gj_t_refractory = gj_t_refractory,
-                        es_tau = es_tau,
-                        es_t_refractory = es_t_refractory,
+                        iprgc_tau = iprgc_tau,
+                        iprgc_t_refractory = iprgc_t_refractory,
+                        pac_tau = pac_tau,
+                        pac_t_refractory = pac_t_refractory,
                         dt = dt
                     )
     omegas = np.array(omegas, dtype = np.float32)
