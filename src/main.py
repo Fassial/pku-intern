@@ -119,8 +119,8 @@ default_net_params = {
         "size": (100,),
         # dynamic params
         "V_init": "gaussian",
-        "tau": .5,
-        "t_refractory": 5.,
+        "tau": 5.,  # tau > t_refractory
+        "t_refractory": 2.,
     },
     "PAC": {
         ## neurons params
@@ -128,21 +128,21 @@ default_net_params = {
         "size": (50,),
         # dynamic params
         "V_init": "gaussian",
-        "tau": 2.,
-        "t_refractory": 5.,
+        "tau": 5.,
+        "t_refractory": 2.,
     },
     "GJ_RP": {
         # gap junction
-        "neighbors": 1,
+        "neighbors": 3,
         "weight": .3,
         "k_spikelet": .1,
         "conn": model.connector.IndexConnector(),
     },
     "ES_RP": {
         # exp synapses
-       "neighbors": 2,
-        "weight": .3,
-        "delay": .1,
+       "neighbors": 5,
+        "weight": .5,
+        "delay": .5,    # random dists
         "tau": .5,
         "conn": model.connector.IndexConnector(),
     },
