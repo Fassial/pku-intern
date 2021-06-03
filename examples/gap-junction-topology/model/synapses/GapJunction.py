@@ -20,22 +20,22 @@ class GapJunction(bp.TwoEndConn):
         # init connections
         self.conn = conn(pre.size, post.size)
         self.conn_mat = conn.requires("conn_mat")
-        self.size = bp.backend.shape(self.conn_mat)
+        self.size = bp.ops.shape(self.conn_mat)
 
         # init vars
-        self.w = bp.backend.ones(self.size) * weight
+        self.w = bp.ops.ones(self.size) * weight
 
         # init super
         super(GapJunction, self).__init__(pre = pre, post = post, **kwargs)
 
     def update(self, _t):
         # get V_post & V_pre
-        V_post = bp.backend.vstack((self.post.V,) * self.size[0])
-        V_pre = bp.backend.vstack((self.pre.V,) * self.size[1]).T
+        V_post = bp.ops.vstack((self.post.V,) * self.size[0])
+        V_pre = bp.ops.vstack((self.pre.V,) * self.size[1]).T
 
         # set Isyn & post.input
         Isyn = self.w * (V_pre - V_post) * self.conn_mat
-        self.post.input += bp.backend.sum(Isyn, axis = 0)
+        self.post.input += bp.ops.sum(Isyn, axis = 0)
 
 class GapJunction_LIF(bp.TwoEndConn):
     target_backend = "general"
@@ -51,10 +51,10 @@ class GapJunction_LIF(bp.TwoEndConn):
         # init connections
         self.conn = conn(pre.size, post.size)
         self.conn_mat = self.conn.requires("conn_mat")
-        self.size = bp.backend.shape(self.conn_mat)
+        self.size = bp.ops.shape(self.conn_mat)
 
         # init vars
-        self.w = bp.backend.ones(self.size) * weight
+        self.w = bp.ops.ones(self.size) * weight
         self.spikelet = self.register_constant_delay("spikelet",
             size = self.size,
             delay_time = delay
@@ -65,22 +65,22 @@ class GapJunction_LIF(bp.TwoEndConn):
 
     def update(self, _t):
         # get V_post & V_pre
-        V_post = bp.backend.vstack((self.post.V,) * self.size[0])
-        V_pre = bp.backend.vstack((self.pre.V,) * self.size[1]).T
+        V_post = bp.ops.vstack((self.post.V,) * self.size[0])
+        V_pre = bp.ops.vstack((self.pre.V,) * self.size[1]).T
 
         # set Isyn & post.input
         Isyn = self.w * (V_pre - V_post) * self.conn_mat
-        self.post.input += bp.backend.sum(Isyn, axis = 0)
+        self.post.input += bp.ops.sum(Isyn, axis = 0)
 
         # push spikelet
         self.spikelet.push(self.w * self.k_spikelet *\
-            bp.backend.unsqueeze(self.pre.spike, 1) *\
+            bp.ops.unsqueeze(self.pre.spike, 1) *\
             self.conn_mat
         )
 
         # set post.V & check post_refractory
         if self.post_refractory:
-            self.post.V += bp.backend.sum(self.spikelet.pull() * (1. - self.post.refractory), axis = 0)
+            self.post.V += bp.ops.sum(self.spikelet.pull() * (1. - self.post.refractory), axis = 0)
         else:
-            self.post.V += bp.backend.sum(self.spikelet.pull(), axis = 0)
+            self.post.V += bp.ops.sum(self.spikelet.pull(), axis = 0)
 

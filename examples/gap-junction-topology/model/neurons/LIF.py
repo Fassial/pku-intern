@@ -28,10 +28,10 @@ class LIF(bp.NeuGroup):
 
         # init vars
         num = bp.size2len(size)
-        self.t_last_spike = bp.backend.ones(num) * -1e7
-        self.input = bp.backend.zeros(num)
-        self.refractory = bp.backend.zeros(num, dtype=bool)
-        self.spike = bp.backend.zeros(num, dtype=bool)
+        self.t_last_spike = bp.ops.ones(num) * -1e7
+        self.input = bp.ops.zeros(num)
+        self.refractory = bp.ops.zeros(num, dtype=bool)
+        self.spike = bp.ops.zeros(num, dtype=bool)
         self._init_V(num = num)
 
         # def kinetic func
@@ -63,7 +63,7 @@ class LIF(bp.NeuGroup):
             self.V = np.random.rand(num) * (self.V_th - self.V_reset) + self.V_reset
         else:
             # default reset
-            self.V = bp.backend.ones(num) * self.V_reset
+            self.V = bp.ops.ones(num) * self.V_reset
 
     def update(self, _t):
         # update vars
@@ -76,10 +76,10 @@ class LIF(bp.NeuGroup):
             R = self.R,
             tau = self.tau
         )
-        V = bp.backend.where(refractory, self.V, V)
+        V = bp.ops.where(refractory, self.V, V)
         spike = (self.V_th <= V) & ~refractory
-        self.t_last_spike = bp.backend.where(spike, _t, self.t_last_spike)
-        self.V = bp.backend.where(spike, self.V_reset, V)
+        self.t_last_spike = bp.ops.where(spike, _t, self.t_last_spike)
+        self.V = bp.ops.where(spike, self.V_reset, V)
         self.refractory = refractory | spike
         self.input[:] = 0.
         self.spike = spike
