@@ -34,7 +34,7 @@ default_stim_params = {
         name = "white",
         height = 50,
         width = 50,
-        duration = 1000,
+        duration = 300,
         others = {
             "noise": 0.,
         }
@@ -43,7 +43,7 @@ default_stim_params = {
         name = "black",
         height = 50,
         width = 50,
-        duration = 1000,
+        duration = 300,
         others = {
             "noise": 0.,
         }
@@ -52,7 +52,7 @@ default_stim_params = {
         name = "normal",
         height = 50,
         width = 50,
-        duration = 1000,
+        duration = 300,
         others = {
             "freqs": np.full((50, 50), 20., dtype = np.float32),
             "noise": 0.,
@@ -62,7 +62,7 @@ default_stim_params = {
         name = "frate_increase",
         height = 50,
         width = 50,
-        duration = 1000,
+        duration = 300,
         others = {
             "freqs": np.full((50, 50), 20., dtype = np.float32),
             "factor": 4.,    # (1,16)
