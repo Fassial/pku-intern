@@ -80,9 +80,7 @@ class RGC_SC_Net(bp.Network):
             post = self.rgc,
             conn = net_params["RGC"]["gj_conn"],
             weight = net_params["RGC"]["gj_w"],
-            delay = 0.,
-            k_spikelet = net_params["RGC"]["gj_spikelet"],
-            post_refractory = True
+            k_spikelet = net_params["RGC"]["gj_spikelet"]
         )
         # init sc
         self.sc = neurons.LIF(
@@ -104,8 +102,7 @@ class RGC_SC_Net(bp.Network):
             post = self.sc,
             conn = bp.connect.All2All(include_self = True),
             weight = net_params["SC"]["R2N_w"],
-            delay = net_params["SC"]["R2N_delay"],
-            post_refractory = True
+            delay = net_params["SC"]["R2N_delay"]
         )
 
         # integrate network

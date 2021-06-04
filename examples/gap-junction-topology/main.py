@@ -93,7 +93,7 @@ def main():
     # init expr_curr
     expr_curr = "circle"
     # init backend
-    bp.backend.set(backend = "numpy")
+    bp.backend.set(backend = "numba")
     # init stimulus
     _, _, stim_rgc = stimulus.stimulus.get(
         stim_params = default_stim_params[expr_curr]

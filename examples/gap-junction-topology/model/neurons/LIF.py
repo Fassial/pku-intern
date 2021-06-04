@@ -1,5 +1,5 @@
 """
-Created on 21:01, Apr. 5th, 2021
+Created on 01:16, June. 4th, 2021
 Author: fassial
 Filename: LIF.py
 """
@@ -87,6 +87,7 @@ class LIF(bp.NeuGroup):
 if __name__ == "__main__":
     # set backend.dt
     bp.backend.set(dt = 0.01)
+    bp.backend.set(backend = "numba")
     # inst lif & run lif
     lif_inst = LIF(size = (100, 100), monitors = ["V"])
     lif_inst.run(
