@@ -41,5 +41,5 @@ class VoltageJump(bp.TwoEndConn):
                 self.pre.spike[pre_id] * self.weight
             )
             if not self.post.refractory[post_id]:
-                self.post.V += self.Isyn.pull(i)
+                self.post.V[post_id] += self.Isyn.pull(i)
 
