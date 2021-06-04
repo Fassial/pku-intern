@@ -1,17 +1,18 @@
 """
-Created on 21:01, Apr. 5th, 2021
+Created on 14:31, June. 4th, 2021
 Author: fassial
 Filename: LIF.py
 """
 import numpy as np
 import brainpy as bp
+from numba import prange
 
 __all__ = [
     "LIF",
 ]
 
 class LIF(bp.NeuGroup):
-    target_backend = "general"
+    target_backend = ['numpy', 'numba', 'numba-parallel', 'numba-cuda']
 
     @staticmethod
     def derivative(V, t, Iext, V_rest, R, tau):
@@ -20,7 +21,7 @@ class LIF(bp.NeuGroup):
 
     def __init__(self, size,
         V_rest = 0., V_reset = -5., V_th = 20., V_init = "reset",
-        R = 1., tau = 10., t_refractory = 1., **kwargs
+        R = 1., tau = 10., t_refractory = 1., noise = 0., **kwargs
     ):
         # init params
         self.V_rest = V_rest
@@ -40,10 +41,17 @@ class LIF(bp.NeuGroup):
         self._init_V(num = num)
 
         # init integral
-        self.integral = bp.odeint(
-            f = LIF.derivative,
-            method = "euler"
-        )
+        if noise == 0.:
+            self.integral = bp.odeint(
+                f = LIF.derivative,
+                method = "euler"
+            )
+        else:
+            self.integral = bp.sdeint(
+                f = LIF.derivative,
+                g = lambda V, t, Iext, V_rest, R, tau: (noise / tau),
+                method = "euler"
+            )
 
         # init super
         super(LIF, self).__init__(size = size, **kwargs)
@@ -62,26 +70,31 @@ class LIF(bp.NeuGroup):
 
     def update(self, _t):
         # update vars
-        refractory = (_t - self.t_last_spike) <= self.t_refractory
-        V = self.integral(
-            V = self.V,
-            t = _t,
-            Iext = self.input,
-            V_rest = self.V_rest,
-            R = self.R,
-            tau = self.tau
-        )
-        V = bp.ops.where(refractory, self.V, V)
-        spike = (self.V_th <= V) & ~refractory
-        self.t_last_spike = bp.ops.where(spike, _t, self.t_last_spike)
-        self.V = bp.ops.where(spike, self.V_reset, V)
-        self.refractory = refractory | spike
-        self.input[:] = 0.
-        self.spike = spike
+        for i in prange(self.size[0]):
+            spike = 0.
+            refractory = (_t - self.t_last_spike[i] <= self.t_refractory)
+            if not refractory:
+                V = self.integral(
+                    V = self.V[i],
+                    t = _t,
+                    Iext = self.input[i],
+                    V_rest = self.V_rest,
+                    R = self.R,
+                    tau = self.tau
+                )
+                spike = (V >= self.V_th)
+                if spike:
+                    V = self.V_reset
+                    self.t_last_spike[i] = _t
+                self.V[i] = V
+            self.spike[i] = spike
+            self.refractory[i] = refractory or spike
+            self.input[i] = 0.
 
 if __name__ == "__main__":
     # set backend.dt
     bp.backend.set(dt = 0.01)
+    bp.backend.set(backend = "numba")
     # inst lif & run lif
     lif_inst = LIF(size = (100, 100), monitors = ["V"])
     lif_inst.run(

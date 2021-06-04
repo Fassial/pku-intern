@@ -163,6 +163,7 @@ def expr(iprgc_tau, iprgc_t_refractory, pac_tau, pac_t_refractory, dt = 0.01):
     # init backend
     bp.backend.set(dt = dt)
     bp.backend.set(backend = "numpy")
+    model.set_backend(backend = "numpy")
 
     # init expr_curr
     expr_curr = "white"

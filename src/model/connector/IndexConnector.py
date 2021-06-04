@@ -1,8 +1,9 @@
 """
-Created on 00:35, Apr. 23rd, 2021
+Created on 15:36, June. 4th, 2021
 Author: fassial
 Filename: IndexConnector.py
 """
+import numpy as np
 import brainpy as bp
 
 __all__ = [
@@ -13,8 +14,8 @@ class IndexConnector(bp.connect.Connector):
 
     def __init__(self):
         # init params
-        self.pre_ids = []
-        self.post_ids = []
+        self.pre_ids = bp.ops.as_tensor([])
+        self.post_ids = bp.ops.as_tensor([])
 
         # init super
         super(IndexConnector, self).__init__()
@@ -23,8 +24,8 @@ class IndexConnector(bp.connect.Connector):
         # init params
         self.num_pre = bp.size2len(pre_size)
         self.num_post = bp.size2len(post_size)
-        if pre_ids != None: self.pre_ids = pre_ids 
-        if post_ids != None: self.post_ids = post_ids
+        if pre_ids != None: self.pre_ids = bp.ops.as_tensor(pre_ids)
+        if post_ids != None: self.post_ids = bp.ops.as_tensor(post_ids)
 
         # init vars
         self.conn_mat = bp.connect.ij2mat(

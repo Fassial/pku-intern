@@ -154,7 +154,8 @@ def main(dt = 0.01):
     expr_curr = "white"
     # init backend
     bp.backend.set(dt = dt)
-    bp.backend.set(backend = "numpy")
+    bp.backend.set(backend = "numba")
+    model.set_backend(backend = "numba")
 
     ## get stim
     # get stim_fname

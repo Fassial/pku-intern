@@ -163,6 +163,7 @@ def expr(gj_neigh, gj_w, es_neigh, es_w, dt = 0.01):
     # init backend
     bp.backend.set(dt = dt)
     bp.backend.set(backend = "numpy")
+    model.set_backend(backend = "numpy")
 
     # init expr_curr
     expr_curr = "white"

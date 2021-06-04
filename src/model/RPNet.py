@@ -253,10 +253,7 @@ class RPNet(bp.Network):
             self.es_pr
         )
 
-    def run(self, run_params = None, report = True, report_percent = 0.1):
-        # update run_params
-        if run_params != None: self.run_params = run_params
-
+    def run(self, report = True, report_percent = 0.1):
         # excute super.run
         super(RPNet, self).run(
             duration = self.run_params["duration"],

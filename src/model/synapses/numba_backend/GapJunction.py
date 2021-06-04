@@ -1,5 +1,5 @@
 """
-Created on 23:57, Apr. 5th, 2021
+Created on 12:41, June. 4th, 2021
 Author: fassial
 Filename: GapJunction.py
 """
@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 class GapJunction(bp.TwoEndConn):
-    target_backend = "general"
+    target_backend = ['numpy', 'numba', 'numba-parallel', 'numba-cuda']
 
     def __init__(self, pre, post, conn, weight = 1., **kwargs):
         # init params
@@ -22,9 +22,6 @@ class GapJunction(bp.TwoEndConn):
         self.pre_ids, self.post_ids = self.conn.requires("pre_ids", "post_ids")
         self.size = len(self.pre_ids)
 
-        # init vars
-        self.w = bp.ops.ones(self.size) * self.weight
-
         # init super
         super(GapJunction, self).__init__(pre = pre, post = post, **kwargs)
 
@@ -32,11 +29,11 @@ class GapJunction(bp.TwoEndConn):
         # set post.V
         for i in range(self.size):
             pre_id, post_id = self.pre_ids[i], self.post_ids[i]
-            self.post.input[post_id] += self.w[i] *\
+            self.post.input[post_id] += self.weight *\
                 (self.pre.V[pre_id] - self.post.V[post_id])
 
 class GapJunction_LIF(bp.TwoEndConn):
-    target_backend = "general"
+    target_backend = ['numpy', 'numba', 'numba-parallel', 'numba-cuda']
 
     def __init__(self, pre, post, conn,
         weight = 1., k_spikelet = .1, **kwargs
@@ -50,9 +47,6 @@ class GapJunction_LIF(bp.TwoEndConn):
         self.pre_ids, self.post_ids = self.conn.requires("pre_ids", "post_ids")
         self.size = len(self.pre_ids)
 
-        # init vars
-        self.w = bp.ops.ones(self.size) * self.weight
-
         # init super
         super(GapJunction_LIF, self).__init__(pre = pre, post = post, **kwargs)
 
@@ -60,8 +54,8 @@ class GapJunction_LIF(bp.TwoEndConn):
         # set post.V
         for i in range(self.size):
             pre_id, post_id = self.pre_ids[i], self.post_ids[i]
-            self.post.input[post_id] += self.w[i] *\
+            self.post.input[post_id] += self.weight *\
                 (self.pre.V[pre_id] - self.post.V[post_id])
             if self.pre.spike[pre_id] and not self.post.refractory[post_id]:
-                self.post.V[post_id] += self.w[i] * self.k_spikelet
+                self.post.V[post_id] += self.weight * self.k_spikelet
 
