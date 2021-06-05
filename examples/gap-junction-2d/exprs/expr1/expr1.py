@@ -5,6 +5,7 @@ Filename: expr1.py
 Description:
     TODO
 """
+import gc
 import numpy as np
 import brainpy as bp
 from copy import deepcopy
@@ -110,7 +111,7 @@ def expr(gj_w, gj_k, run_params, dt = 0.01):
 
     ## exec expr
     # inst GJ2DNet
-    net = model.GJ2DNet(net_params = default_net_params, run_params = {
+    net = model.GJ2DNet(net_params = net_params, run_params = {
         "inputs": stim,
         "dt": 0.01,
         "duration": default_stim_params[expr_curr].duration,
@@ -132,6 +133,9 @@ def expr(gj_w, gj_k, run_params, dt = 0.01):
     spike = net_monitors.spike.T
     print(spike.shape)
     omega = 0.  # omega = utils.get_omega(spike = spike, dt = dt)
+
+    # rm vars
+    del(net_params); del(net); del(net_monitors); del(spike); gc.collect()
 
     return omega
 
@@ -169,7 +173,7 @@ def main(dt = 0.01):
         # save stim
         np.savetxt(fname = stim_fname, X = stim, delimiter = ",")
     # rescale stim
-    stim *= .95; print(stim.shape)
+    stim *= .8; print(stim.shape)
 
     # set omegas
     for gj_w in gj_ws:

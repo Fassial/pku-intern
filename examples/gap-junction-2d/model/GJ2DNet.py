@@ -59,7 +59,7 @@ class GJ2DNet(bp.Network):
             t_refractory = net_params["neurons"]["t_refractory"],
             noise = net_params["neurons"]["noise"],
             # monitor
-            monitors = ["V", "spike"]
+            monitors = ["spike"]
         )
         # init gj
         self.gj = synapses.GapJunction_LIF(
