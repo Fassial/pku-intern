@@ -126,7 +126,12 @@ def expr(r_g, p_g, w_g, r_i, p_i, w_i, dt = 0.01):
 
     ## compute omega
     print(net_monitors.spike.T.shape)
-    omega = utils.get_omega(spike = net_monitors.spike.T, dt = dt)
+    omega = utils.get_omega(
+        spike = net_monitors.spike.T,
+        bin = 100,
+        dt = dt,
+        N = 20
+    )
 
     return omega
 

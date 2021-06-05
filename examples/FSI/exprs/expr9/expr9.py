@@ -120,7 +120,10 @@ def expr(r_g, p_g, g_gap, dt = 0.01):
 
     ## compute cv
     print(net_monitors.spike.T.shape)
-    cv = utils.get_cv(spike = net_monitors.spike.T, dt = dt)
+    cv = utils.get_cv(
+        spike = net_monitors.spike.T,
+        dt = dt
+    )
 
     return np.mean(cv)
 

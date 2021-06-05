@@ -1,5 +1,5 @@
 """
-Created on 19:34, May. 23rd, 2021
+Created on 19:46, June. 5th, 2021
 Author: fassial
 Filename: utils.py
 """
@@ -12,22 +12,24 @@ __all__ = [
 
 ## define helper func
 # define _get_omega func
-def _get_omega(frate, N):
+def _get_omega(frate, bn):
     # init omega
     omega = []
 
     # init idxs
     idxs = []
-    for i in range(frate.shape[0]):
-        idx = [(i + j) if (i + j) < frate.shape[0] else ((i + j) - frate.shape[0]) for j in range(N)]
+    for i in range(int(np.ceil(frate.shape[0] / bn))):
+        idx = []
+        for j in range(bn):
+            if (i * bn + j) < frate.shape[0]: idx.append(i * bn + j)
         idxs.append(idx)
 
+    # set frate_bn
+    frate_bn = np.array([np.mean(frate[idx,:], axis = 0) for idx in idxs])
     # set omega
-    for idx in idxs:
-        frate_sub = frate[idx]
-        omega.append(np.sum((frate_sub - np.mean(frate_sub)) ** 2) / N)
+    omega = np.sum((frate_bn - np.mean(frate_bn)) ** 2) / frate_bn.size
 
-    return np.max(omega)
+    return omega
 
 # define _spike2isi func
 def _spike2isi(spike, dt):
@@ -59,17 +61,22 @@ def _get_cv(spike, dt):
 
 ## define utils func
 # define get_omega func
-def get_omega(spike, dt):
+def get_omega(spike, bin, dt, N = 100):
+    # check spike.shape[1] // (bin / dt)
+    assert int(spike.shape[1] / (bin / dt)) == spike.shape[1] / (bin / dt)
+
     # init omega
     omega = []
 
     # init frate
-    frate = np.sum(spike, axis = 1) / (spike.shape[1] * dt / 1000.)
+    frate = np.sum(spike.reshape(
+        (spike.shape[0], int(spike.shape[1] / (bin / dt)), int(bin / dt))
+    ), axis = 2) / (bin / 1000.); print(frate.shape)
     # set omega
-    for i in range(spike.shape[0]):
+    for i in range(N):
         omega.append(_get_omega(
             frate = frate,
-            N = i + 1
+            bn = i + 1
         ))
 
     return np.sqrt(np.max(omega))
