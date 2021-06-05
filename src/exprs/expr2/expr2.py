@@ -241,7 +241,12 @@ def expr(iprgc_tau, iprgc_t_refractory, pac_tau, pac_t_refractory, dt = 0.01):
     ## compute omega
     spike = bp.ops.vstack((net_monitors["ipRGC"].spike.T, net_monitors["PAC"].spike.T))
     print(spike.shape)
-    omega = utils.get_omega(spike = spike, dt = dt)
+    omega = utils.get_omega(
+        spike = spike,
+        bin = 100,
+        dt = dt,
+        N = 20
+    )
 
     return omega
 
