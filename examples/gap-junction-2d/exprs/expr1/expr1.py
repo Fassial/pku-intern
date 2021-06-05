@@ -113,7 +113,7 @@ def expr(gj_w, gj_k, run_params, dt = 0.01):
     # inst GJ2DNet
     net = model.GJ2DNet(net_params = net_params, run_params = {
         "inputs": stim,
-        "dt": 0.01,
+        "dt": dt,
         "duration": default_stim_params[expr_curr].duration,
     })
     # net run
@@ -129,19 +129,34 @@ def expr(gj_w, gj_k, run_params, dt = 0.01):
         str(gj_w) + "-" + str(gj_k) + ".csv"
     ))
 
-    ## compute omega
-    spike = net_monitors.spike.T
-    print(spike.shape)
-    omega = 0.  # omega = utils.get_omega(spike = spike, dt = dt)
+    ## compute statistic-values
+    # compute cor
+    cor = bp.measure.cross_correlation(
+        spikes = net_monitors.spike,
+        bin = 10,
+        dt = dt
+    )
+    # compute omega & cv
+    spike = net_monitors.spike.T; print(spike.shape)
+    omega = utils.get_omega(
+        spike = spike,
+        bin = 100,
+        dt = dt,
+        N = 100
+    )
+    cv = np.mean(utils.get_cv(
+        spike = spike,
+        dt = dt
+    ))
 
     # rm vars
     del(net_params); del(net); del(net_monitors); del(spike); gc.collect()
 
-    return omega
+    return (omega, cv, cor)
 
 def main(dt = 0.01):
-    # init omegas
-    omegas = []
+    # init omegas & cvs & cors
+    omegas = []; cvs = []; cors = []
 
     # init gj_ws & gj_ks
     gj_ws = [.05, .1, .2, .3, .4, .5]
@@ -173,13 +188,13 @@ def main(dt = 0.01):
         # save stim
         np.savetxt(fname = stim_fname, X = stim, delimiter = ",")
     # rescale stim
-    stim *= .8; print(stim.shape)
+    stim *= .9; print(stim.shape)
 
     # set omegas
     for gj_w in gj_ws:
-        omega = []
+        omega = []; cv = []; cor = []
         for gj_k in gj_ks:
-            omega.append(expr(
+            res = expr(
                 gj_w = gj_w,
                 gj_k = gj_k,
                 run_params = {
@@ -187,14 +202,24 @@ def main(dt = 0.01):
                     "stim": stim,
                 },
                 dt = dt
-            ))
-        omegas.append(omega)
-    omegas = np.array(omegas, dtype = np.float32)
+            ); omega.append(res[0]); cv.append(res[1]); cor.append(res[2])
+        omegas.append(omega); cvs.append(cv); cors.append(cor)
+    omegas = np.array(omegas); cvs = np.array(cvs); cors = np.array(cors)
 
-    # save omegas
+    # save omegas & cvs & cors
     np.savetxt(
         fname = os.path.join(DIR_OUTPUTS, "omegas.csv"),
         X = omegas,
+        delimiter = ","
+    )
+    np.savetxt(
+        fname = os.path.join(DIR_OUTPUTS, "cvs.csv"),
+        X = cvs,
+        delimiter = ","
+    )
+    np.savetxt(
+        fname = os.path.join(DIR_OUTPUTS, "cors.csv"),
+        X = cors,
         delimiter = ","
     )
 
