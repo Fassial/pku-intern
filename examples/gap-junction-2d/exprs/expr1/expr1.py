@@ -3,7 +3,9 @@ Created on 01:54, June. 4th, 2021
 Author: fassial
 Filename: expr1.py
 Description:
-    TODO
+    Changes in spatial patterning (Ω), temporal patterning (cv) and
+    cross correlation patterning (cor) as a function of weight (g_w)
+    and spikelet (g_k) of the GJ network.
 """
 import gc
 import numpy as np
@@ -159,8 +161,8 @@ def main(dt = 0.01):
     omegas = []; cvs = []; cors = []
 
     # init gj_ws & gj_ks
-    gj_ws = [.05, .1, .2, .3, .4, .5]
-    gj_ks = [.05, .1, .15, .2, .3, .5]
+    gj_ws = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5]
+    gj_ks = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5]
 
     ## init backend
     bp.backend.set(dt = dt)
