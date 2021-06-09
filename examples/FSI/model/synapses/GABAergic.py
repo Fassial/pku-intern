@@ -27,7 +27,7 @@ class GABAergic(bp.TwoEndConn):
         self.tau_s = tau_s
         self.tau_f = tau_f
 
-        # init varsconnections
+        # init connections
         self.conn = conn(pre.size, post.size)
         self.conn_mat = self.conn.requires("conn_mat")
         self.size = bp.ops.shape(self.conn_mat)
