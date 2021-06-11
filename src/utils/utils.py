@@ -71,7 +71,7 @@ def get_omega(spike, bin, dt, N = 100):
     # init frate
     frate = np.sum(spike.reshape(
         (spike.shape[0], int(spike.shape[1] / (bin / dt)), int(bin / dt))
-    ), axis = 2) / (bin / 1000.); print(frate.shape)
+    ), axis = 2) / (bin / 1000.)
     # set omega
     for i in range(N):
         omega.append(_get_omega(

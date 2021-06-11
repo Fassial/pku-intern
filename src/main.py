@@ -33,7 +33,7 @@ default_stim_params = {
             width = 1,
             duration = 1000,
             others = {
-                "noise": .2,
+                "noise": .0,
             }
         ),
         "black": stimulus.stim_params(
@@ -75,7 +75,7 @@ default_stim_params = {
             width = 1,
             duration = 1000,
             others = {
-                "noise": .2,
+                "noise": .0,
             }
         ),
         "black": stimulus.stim_params(
@@ -120,7 +120,8 @@ default_net_params = {
         # dynamic params
         "V_init": "gaussian",
         "tau": 5.,  # tau > t_refractory
-        "t_refractory": 2.,
+        "t_refractory": 1.,
+        "noise": .2,
     },
     "PAC": {
         ## neurons params
@@ -129,7 +130,8 @@ default_net_params = {
         # dynamic params
         "V_init": "gaussian",
         "tau": 5.,
-        "t_refractory": 2.,
+        "t_refractory": 1.,
+        "noise": .2,
     },
     "GJ_RP": {
         # gap junction
@@ -140,7 +142,7 @@ default_net_params = {
     },
     "ES_RP": {
         # exp synapses
-       "neighbors": 5,
+        "neighbors": 5,
         "weight": .5,
         "delay": .5,    # random dists
         "tau": .5,
@@ -196,7 +198,7 @@ def main(dt = 0.01):
         # save stim
         np.savetxt(fname = stim_pac_fname, X = stim_pac, delimiter = ",")
     # rescale stim
-    stim_pac *= .95; stim_iprgc *= .95
+    stim_pac *= .9; stim_iprgc *= .9
 
     ## exec sim
     # inst RPNet

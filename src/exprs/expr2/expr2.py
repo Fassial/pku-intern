@@ -37,7 +37,7 @@ default_stim_params = {
             width = 1,
             duration = 1000,
             others = {
-                "noise": .2,
+                "noise": .0,
             }
         ),
         "black": stimulus.stim_params(
@@ -46,7 +46,7 @@ default_stim_params = {
             width = 1,
             duration = 1000,
             others = {
-                "noise": .2,
+                "noise": .0,
             }
         ),
         "normal": stimulus.stim_params(
@@ -56,7 +56,7 @@ default_stim_params = {
             duration = 1000,
             others = {
                 "freqs": np.full((100,), 20., dtype = np.float32),
-                "noise": .2,
+                "noise": .0,
             }
         ),
         "frate_increase": stimulus.stim_params(
@@ -68,7 +68,7 @@ default_stim_params = {
                 "freqs": np.full((100,), 20., dtype = np.float32),
                 "factor": 4.,   # (1,16)
                 "ratio": .2,
-                "noise": 0.,
+                "noise": .0,
             }
         ),
     },
@@ -79,7 +79,7 @@ default_stim_params = {
             width = 1,
             duration = 1000,
             others = {
-                "noise": .2,
+                "noise": .0,
             }
         ),
         "black": stimulus.stim_params(
@@ -88,7 +88,7 @@ default_stim_params = {
             width = 1,
             duration = 1000,
             others = {
-                "noise": 0,
+                "noise": .0,
             }
         ),
         "normal": stimulus.stim_params(
@@ -98,7 +98,7 @@ default_stim_params = {
             duration = 1000,
             others = {
                 "freqs": np.full((50,), 20., dtype = np.float32),
-                "noise": 0,
+                "noise": .0,
             }
         ),
         "frate_increase": stimulus.stim_params(
@@ -110,7 +110,7 @@ default_stim_params = {
                 "freqs": np.full((50,), 20., dtype = np.float32),
                 "factor": 4.,   # (1,16)
                 "ratio": .2,
-                "noise": 0.,
+                "noise": .0,
             }
         ),
     },
@@ -125,6 +125,7 @@ default_net_params = {
         "V_init": "gaussian",
         "tau": .5,
         "t_refractory": 5.,
+        "noise": .2,
     },
     "PAC": {
         ## neurons params
@@ -134,6 +135,7 @@ default_net_params = {
         "V_init": "gaussian",
         "tau": .5,
         "t_refractory": 5.,
+        "noise": .2,
     },
     "GJ_RP": {
         # gap junction
@@ -162,8 +164,8 @@ def expr(iprgc_tau, iprgc_t_refractory, pac_tau, pac_t_refractory, dt = 0.01):
     np.random.seed(0)
     # init backend
     bp.backend.set(dt = dt)
-    bp.backend.set(backend = "numpy")
-    model.set_backend(backend = "numpy")
+    bp.backend.set(backend = "numba")
+    model.set_backend(backend = "numba")
 
     # init expr_curr
     expr_curr = "white"
@@ -213,7 +215,7 @@ def expr(iprgc_tau, iprgc_t_refractory, pac_tau, pac_t_refractory, dt = 0.01):
         # save stim
         np.savetxt(fname = stim_pac_fname, X = stim_pac, delimiter = ",")
     # rescale stim
-    stim_pac *= .95; stim_iprgc *= .95
+    stim_pac *= .9; stim_iprgc *= .9
 
     ## exec expr
     # inst RPNet
@@ -238,21 +240,31 @@ def expr(iprgc_tau, iprgc_t_refractory, pac_tau, pac_t_refractory, dt = 0.01):
         str(pac_tau) + "-" + str(pac_t_refractory) + ".csv"
     ))
 
-    ## compute omega
-    spike = bp.ops.vstack((net_monitors["ipRGC"].spike.T, net_monitors["PAC"].spike.T))
-    print(spike.shape)
+    ## compute statistic-values
+    spike = bp.ops.concatenate((net_monitors["ipRGC"].spike.T, net_monitors["PAC"].spike.T)); print(spike.shape)
+    # compute cor
+    cor = bp.measure.cross_correlation(
+        spikes = spike.T,
+        bin = 10,
+        dt = dt
+    )
+    # compute omega & cv
     omega = utils.get_omega(
         spike = spike,
         bin = 100,
         dt = dt,
         N = 20
     )
+    cv = np.mean(utils.get_cv(
+        spike = spike,
+        dt = dt
+    ))
 
-    return omega
+    return (omega, cv, cor)
 
 def main(dt = 0.01):
-    # init omegas
-    omegas = []
+    # init omegas & cvs & cors
+    omegas = []; cvs = []; cors = []
 
     # init iprgc_taus & iprgc_t_refractorys & pac_taus & pac_t_refractorys
     iprgc_taus = [.5, 1., 2.]
@@ -272,12 +284,22 @@ def main(dt = 0.01):
                         pac_t_refractory = pac_t_refractory,
                         dt = dt
                     )
-    omegas = np.array(omegas, dtype = np.float32)
+    omegas = np.array(omegas); cvs = np.array(cvs); cors = np.array(cors)
 
-    # save omegas
+    # save omegas & cvs & cors
     np.savetxt(
         fname = os.path.join(DIR_OUTPUTS, "omegas.csv"),
         X = omegas,
+        delimiter = ","
+    )
+    np.savetxt(
+        fname = os.path.join(DIR_OUTPUTS, "cvs.csv"),
+        X = cvs,
+        delimiter = ","
+    )
+    np.savetxt(
+        fname = os.path.join(DIR_OUTPUTS, "cors.csv"),
+        X = cors,
         delimiter = ","
     )
 
