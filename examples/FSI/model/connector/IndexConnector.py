@@ -14,8 +14,8 @@ class IndexConnector(bp.connect.Connector):
 
     def __init__(self):
         # init params
-        self.pre_ids = bp.ops.as_tensor([])
-        self.post_ids = bp.ops.as_tensor([])
+        self.pre_ids = bp.ops.as_tensor([], dtype = bp.ops.int32)
+        self.post_ids = bp.ops.as_tensor([], dtype = bp.ops.int32)
 
         # init super
         super(IndexConnector, self).__init__()
@@ -24,8 +24,8 @@ class IndexConnector(bp.connect.Connector):
         # init params
         self.num_pre = bp.size2len(pre_size)
         self.num_post = bp.size2len(post_size)
-        if pre_ids != None: self.pre_ids = bp.ops.as_tensor(pre_ids)
-        if post_ids != None: self.post_ids = bp.ops.as_tensor(post_ids)
+        if pre_ids != None: self.pre_ids = bp.ops.as_tensor(pre_ids, dtype = bp.ops.int32)
+        if post_ids != None: self.post_ids = bp.ops.as_tensor(post_ids, dtype = bp.ops.int32)
 
         # init vars
         self.conn_mat = bp.connect.ij2mat(
