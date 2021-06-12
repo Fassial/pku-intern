@@ -34,8 +34,28 @@ class stimulus(object):
         return stim, spike
 
     @staticmethod
-    def show(stim_params, img_size = None, img_fname = None):
-        # get corresponding arr & idxs & stim
+    def show_stim(stim_params, img_size = None, img_fname = None):
+        # get corresponding stim
+        stim, _ = stimulus.get(stim_params = stim_params)
+
+        # reshape stim
+        stim = stim[0,:].reshape((stim_params.height, stim_params.width))
+
+        # gen plt
+        plt.imshow(stim[::-1,:], cmap = "gray")
+        plt.xticks([])
+        plt.yticks([])
+        plt.tight_layout(pad = 1.)
+
+        # save img
+        if img_fname is None:
+            plt.show()
+        else:
+            plt.savefig(fname = img_fname)
+
+    @staticmethod
+    def show_spike(stim_params, img_size = None, img_fname = None):
+        # get corresponding spike
         _, spike = stimulus.get(stim_params = stim_params)
 
         # init fig & gs
@@ -199,6 +219,77 @@ class stimulus(object):
 
         return stim, spike
 
+    # hole stimulus funcs
+    @staticmethod
+    def _one_hole(height = 50, width = 50, duration = 100, stim_params = {
+        "radius": 5,
+        "position": "center",   # ["center", "corner", "line_middle"]
+        "noise": 0.,
+    }):
+        # init stim & spike
+        stim = np.zeros((int(duration / bp.backend.get_dt()), height, width), dtype=np.float32)
+        spike = np.zeros((int(duration / bp.backend.get_dt()), height * width), dtype=np.float32)
+
+        # set center
+        if stim_params["position"] == "center":
+            center = (height / 2, width / 2)
+        elif stim_params["position"] == "corner":
+            center = (stim_params["radius"] - 1, stim_params["radius"] - 1)
+        elif stim_params["position"] == "line_middle":
+            center = (stim_params["radius"] - 1, width / 2)
+        else:
+            raise ValueError("ERROR: Unknown stim_params[\"position\"] in stimulus._one_hole.")
+
+        for i in range(height):
+            for j in range(width):
+                dist = stimulus._dist(i, j, center)
+                if dist < stim_params["radius"]:
+                    stim[:, i, j] = 1.
+
+        # reshape stim
+        stim = stim.reshape((-1,height * width))
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
+        return stim, spike
+
+    @staticmethod
+    def _two_holes(height = 50, width = 50, duration = 100, stim_params = {
+        "radius_left": 5,
+        "radius_right": 5,
+        "interval": 15,
+        "noise": 0.,
+    }):
+        # init stim & spike
+        stim = np.zeros((int(duration / bp.backend.get_dt()), height, width), dtype=np.float32)
+        spike = np.zeros((int(duration / bp.backend.get_dt()), height * width), dtype=np.float32)
+
+        # set center
+        center_left = (height / 2, width / 2 - stim_params["interval"] / 2)
+        center_right = (height / 2, width / 2 + stim_params["interval"] / 2)
+
+        for i in range(height):
+            for j in range(width):
+                dist_left = stimulus._dist(i, j, center_left)
+                dist_right = stimulus._dist(i, j, center_right)
+                if dist_left < stim_params["radius_left"]:
+                    stim[:, i, j] = 1.
+                if dist_right < stim_params["radius_right"]:
+                    stim[:, i, j] = 1.
+
+        # reshape stim
+        stim = stim.reshape((-1,height * width))
+        # add noise to stim
+        stim *= np.random.normal(
+            loc = 1.,
+            scale = stim_params["noise"],
+            size = stim.shape
+        )
+        return stim, spike
+
 class stim_params:
 
     def __init__(self, name, height, width, duration, others):
@@ -247,6 +338,29 @@ default_stim_params = {
             "freqs": np.full((100,), 20., dtype = np.float32),
             "factor": 4.,    # (1,16)
             "ratio": .2,
+            "noise": 0.,
+        }
+    ),
+    "one_hole": stim_params(
+        name = "one_hole",
+        height = 50,
+        width = 50,
+        duration = 100,
+        others = {
+            "radius": 5,
+            "position": "center",
+            "noise": 0.,
+        }
+    ),
+    "two_holes": stim_params(
+        name = "two_holes",
+        height = 50,
+        width = 50,
+        duration = 100,
+        others = {
+            "radius_left": 5,
+            "radius_right": 5,
+            "interval": 15,
             "noise": 0.,
         }
     ),
