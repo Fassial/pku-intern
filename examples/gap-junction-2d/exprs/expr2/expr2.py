@@ -117,9 +117,9 @@ default_net_params = {
     },
 }
 
-def expr(noise, range_, run_params, dt = 0.01):
+def expr(gj_w, noise, range_, run_params, dt = 0.01):
     print("processing expr(" +\
-        str(noise) + "," + str(range_) + ")..."
+        str(gj_w) + "," + str(noise) + "," + str(range_) + ")..."
     )
 
     # init seed
@@ -132,7 +132,7 @@ def expr(noise, range_, run_params, dt = 0.01):
     ## prepare expr
     # init net_params
     net_params = deepcopy(default_net_params)
-    net_params["neurons"]["noise"] = noise; print(net_params)
+    net_params["GJ"]["weight"] = gj_w; net_params["neurons"]["noise"] = noise; print(net_params)
 
     ## exec expr
     # inst GJ2DNet
@@ -147,11 +147,11 @@ def expr(noise, range_, run_params, dt = 0.01):
     net_monitors = net.get_monitors()
     net.show(img_fname = os.path.join(DIR_FIGS,
         expr_curr + "-" +\
-        str(noise) + "-" + str(range_) + ".png"
+        str(gj_w) + "-" + str(noise) + "-" + str(range_) + ".png"
     ))
     net.save(spike_fname = os.path.join(DIR_OUTPUTS_SPIKE,
         expr_curr + "-" +\
-        str(noise) + "-" + str(range_) + ".csv"
+        str(gj_w) + "-" + str(noise) + "-" + str(range_) + ".csv"
     ))
 
     ## compute statistic-values
@@ -183,9 +183,10 @@ def main(dt = 0.01):
     # init omegas & cvs & cors
     omegas = []; cvs = []; cors = []
 
-    # init gj_ws & gj_ks
-    noises = [.05, .1, .15, .2, .25, .3, .35, .4, .45, .5]
-    ranges_ = [.1, .3, .5, .7, 1.]
+    # init gj_ws & noises & ranges_
+    gj_ws = [.1, .15, .2, .25, .3, .35, .4, .45, .5]    # [.05, ]
+    noises = [.05, .1, .15, .2, .3]
+    ranges_ = [.1, .3, .5, .7, .8, .85, .9, .95, 1.]
 
     ## init backend
     bp.backend.set(dt = dt)
@@ -215,20 +216,20 @@ def main(dt = 0.01):
     # rescale stim
     stim *= 1.; print(stim.shape)
 
-    # set omegas
-    for noise in noises:
-        omega = []; cv = []; cor = []
-        for range_ in ranges_:
-            res = expr(
-                noise = noise,
-                range_ = range_,
-                run_params = {
-                    "expr_curr": expr_curr,
-                    "stim": stim,
-                },
-                dt = dt
-            ); omega.append(res[0]); cv.append(res[1]); cor.append(res[2])
-        omegas.append(omega); cvs.append(cv); cors.append(cor)
+    # set omegas & cvs & cors
+    for gj_w in gj_ws:
+        for noise in noises:
+            for range_ in ranges_:
+                expr(
+                    gj_w = gj_w,
+                    noise = noise,
+                    range_ = range_,
+                    run_params = {
+                        "expr_curr": expr_curr,
+                        "stim": stim,
+                    },
+                    dt = dt
+                )
     omegas = np.array(omegas); cvs = np.array(cvs); cors = np.array(cors)
 
     # save omegas & cvs & cors

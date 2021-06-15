@@ -192,7 +192,7 @@ def main(dt = 0.01):
     # rescale stim
     stim *= .9; print(stim.shape)
 
-    # set omegas
+    # set omegas & cvs & cors
     for gj_w in gj_ws:
         omega = []; cv = []; cor = []
         for gj_k in gj_ks:
