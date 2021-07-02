@@ -1,0 +1,166 @@
+%!TEX program = xelatex
+% 完整编译: xelatex -> bibtex -> xelatex -> xelatex
+\documentclass[lang=cn,11pt,a4paper,cite=numbers]{elegantpaper}
+\usepackage{xfp}
+\usepackage{tikz}
+
+\title{指数分布族}
+\author{郑晖}
+% \institute{}
+
+% \version{0.09}
+\date{\today}
+
+% 本文档命令
+\usepackage{array}
+\newcommand{\ccr}[1]{\makecell{{\color{#1}\rule{1cm}{1cm}}}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  指数分布族的定义及其示例分布证明。
+\keywords{指数分布族}
+\end{abstract}
+
+\section{什么是指数分布族\cite{exponential-distribution-family}}
+\subsection{基本描述}
+  指数型分布是一类重要的分布族。在统计推断中，指数型分布族占有重要的地位，在各领域应用广泛。许多的统计分布都是指数型分布，彼此之间具有一定的共性。在研究其统计性质与分布特征时，利用指数型分布族的特征，可以将这一族分布的特征分别表示出来。在广义线性模型的统计推断中，常假设样本服从指数型分布。
+\subsection{定义}
+  指数分布族可以写成如下的形式：
+\begin{equation}
+  \begin{aligned}
+    p(y;{\eta})&=b(y)exp({\eta}^{T}T(y)-a({\eta}))
+  \end{aligned}
+\end{equation}
+在这里，${\eta}$叫做分布的自然参数，$a({\eta})$叫做累积量母函数（又称log partition function）。$exp(-a({\eta}))$这个量是分布$p(y;{\eta})$的归一化函数，用来确保分布$p(y;{\eta})$对$y$的积分为1。$T(y)$成为充分统计量（sufficient statistic），对于我们考虑的分布，一般认为$T(y)=y$。一组确定的$T$，$a$和$b$定义了这样一个以$\eta$为参数的分布族。对于不同的$\eta$，我们可以得到指数分布族中不同的分布。
+\subsection{数学特征}
+  对于单参数指数分布的随机变量，记
+\begin{equation}
+  \begin{aligned}
+    \dot{a}({\eta})&=\frac{da({\eta})}{d{\eta}}\\
+    \ddot{a}({\eta})&=\frac{d^{2}a({\eta})}{d{\eta}^{2}}
+  \end{aligned}
+\end{equation}
+分别表示关于$\eta$的函数$a$对$\eta$求一二阶导数，则有以下结论：
+\begin{enumerate}
+  \item 指数型分布随机变量的期望
+    \begin{equation}
+      \begin{aligned}
+        E(Y)=\dot{a}({\eta})
+      \end{aligned}
+    \end{equation}
+  \item 指数型分布随机变量的方差
+    \begin{equation}
+      \begin{aligned}
+        Var(Y)=\ddot{a}({\eta})
+      \end{aligned}
+    \end{equation}
+\end{enumerate}
+
+\section{高斯分布属于指数分布族的证明}
+  对于高斯分布，当方差已知（方差对模型的参数没有影响，所以我们可以任意地选一个方差）时，在这里我们令
+\begin{equation}
+  \begin{aligned}
+    {\sigma}^{2}&=1
+  \end{aligned}
+\end{equation}
+则其分布可以表示为：
+\begin{equation}
+  \begin{aligned}
+    p(y;{\mu})&=\frac{1}{\sqrt{2{\pi}}}exp\left(-\frac{1}{2}(y-{\mu})^{2}\right)\\
+              &=\frac{1}{\sqrt{2{\pi}}}exp\left(-\frac{1}{2}y^{2}\right){\cdot}exp\left({\mu}y-\frac{1}{2}{\mu}^{2}\right)
+  \end{aligned}
+\end{equation}
+
+  为了将其想指数分布族靠拢，我们进行如下表示：
+\begin{equation}
+  \begin{aligned}
+    {\eta}&={\mu}\\
+    T(y)&=y\\
+    a({\eta})&=\frac{{\mu}^{2}}{2}=\frac{{\eta}^{2}}{2}\\
+    b(y)&=\frac{1}{\sqrt{2{\pi}}}exp(-\frac{y^{2}}{2})
+  \end{aligned}
+\end{equation}
+这显示了高斯分布可以被写成是指数分布族的形式，所以高斯分布属于指数分布族。
+
+  进一步地，我们利用指数分布族的性质去验证一下，有：
+\begin{equation}
+  \begin{aligned}
+    \dot{a}({\eta})&=\frac{d}{d{\eta}}(\frac{{\eta}^{2}}{2})={\eta}={\mu}\\
+    \ddot{a}({\eta})&=\frac{d^{2}a({\eta})}{d{\eta}^{2}}=\frac{d\dot{a}({\eta})}{d{\eta}}=\frac{d}{d{\eta}}({\eta})=1
+  \end{aligned}
+\end{equation}
+刚好是高斯分布的期望和方差，所以验证成功。
+
+\section{二项分布属于指数分布族的证明}
+  对于二项分布（伯努利分布），每一个取不同均值的参数$\Phi$，就会唯一确定一个$y$属于$(0,1)$之间的分布，所以可以表示为
+\begin{equation}
+  \begin{aligned}
+    p(y=1;{\Phi})&={\Phi}\\
+    p(y=0;{\Phi})&=1-{\Phi}
+  \end{aligned}
+\end{equation}
+故二项分布的分布函数只以$\Phi$作为参数，统一这样表示二项分布：
+\begin{equation}
+  \begin{aligned}
+    p(y;{\Phi})&={\Phi}^{y}(1-{\Phi})^{1-y}\\
+               &=exp(y\rm{log}{\Phi}+(1-y)\rm{log}(1-{\Phi}))\\
+               &=exp\left(\left(\rm{log}\left(\frac{{\Phi}}{1-{\Phi}}\right)\right)y+\rm{log}(1-{\Phi})\right)
+  \end{aligned}
+\end{equation}
+这样，自然参数为：
+\begin{equation}
+  \begin{aligned}
+    {\eta}&=\rm{log}\left(\frac{{\Phi}}{1-{\Phi}}\right)
+  \end{aligned}
+\end{equation}
+翻转一下，有：
+\begin{equation}
+  \begin{aligned}
+    {\Phi}&=\frac{1}{1+e^{-{\eta}}}
+  \end{aligned}
+\end{equation}
+
+  为进一步将二项分布向指数分布族靠拢，我们可以进行如下表示：
+\begin{equation}
+  \begin{aligned}
+    T(y)&=y\\
+    a({\eta})&=-\rm{log}(1-{\Phi})=\rm{log}(1+e^{\eta})\\
+    b(y)&=1
+  \end{aligned}
+\end{equation}
+这显示了二项分布可以被写成是指数分布族的形式，所以二项分布属于指数分布族。
+
+  进一步地，我们用指数分布族的性质去验证一下，有：
+\begin{equation}
+  \begin{aligned}
+    \dot{a}({\eta})&=\frac{d}{d{\eta}}(\rm{log}(1+e^{\eta}))=\frac{e^{\eta}}{1+e^{\eta}}={\Phi}\\
+    \ddot{a}({\eta})&=\frac{d^{2}a({\eta})}{d{\eta}^{2}}=\frac{d\dot{a}({\eta})}{d{\eta}}=\frac{d}{d{\eta}}(\frac{e^{\eta}}{(1+e^{\eta})^{2}})={\Phi}(1-{\Phi})
+  \end{aligned}
+\end{equation}
+刚好是二项分布的期望与方差，故满足性质。
+
+\section{二项式系数与正态分布有什么关系？如何证明这种关系？\cite{relationship-binomial-normal}}
+二项式系数与二项分布直接挂钩，例如
+\begin{equation}
+  \begin{aligned}
+    X&{\sim}B(n,p)
+  \end{aligned}
+\end{equation}
+其概率密度函数包含二项式系数，如下
+\begin{equation}
+  \begin{aligned}
+    p(X=k)&=\begin{pmatrix}
+      n\\
+      k
+    \end{pmatrix}p^{k}(1-p)^(n-k)
+  \end{aligned}
+\end{equation}
+而根据中心极限定理（其中最简单的一种），独立同分布的随机变量之和所服从的分布依分布收敛于正态分布，这个证明一般是用特征函数来做的，在稍微全面一点的概率论书籍上就有。大概思路就是独立随机变量之和所服从分布的特征函数是每个随机变量的特征函数的乘积（这里运用到卷积的傅里叶变换是傅里叶变换之积的性质），然后该乘积一致收敛于正态分布的特征函数，这是总的思路。
+
+\nocite{*}
+\bibliography{ref/refs}
+
+\end{document}
