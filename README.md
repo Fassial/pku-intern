@@ -1,2 +1,2 @@
 # pku-intern
-2021 Summer Internship in Peking University.
+2021 Summer Internship @PKU-NIP-Lab in Peking University.
